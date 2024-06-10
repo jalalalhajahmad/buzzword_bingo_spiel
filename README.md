@@ -1,1 +1,1 @@
-# buzzword_bingo-spiel
+# buzzword_bingo_spiel
