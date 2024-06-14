@@ -1,1 +1,22 @@
+import time
+from tqdm import tqdm
 
+#Willkommen-Bildschirm
+def welcomescreen():
+    print("**")
+    print("*                                      ")
+    print("          Willkommen!                 ")
+    print("                                      ")
+    print("   Das Programm wird geladen...       ")
+    print("                                      *")
+    print("**")
+    time.sleep(2)  
+#Ladeanimation
+def loadinganimation(duration=5):
+    for i in tqdm(range(101), desc="Laden", ncols=100, unit="%", ascii=True, barformat="{desc}: |{bar}| {percentage:3.0f}%"):
+        time.sleep(duration / 100)
+
+if _name == "__main":
+    welcome_screen()
+    loading_animation()
+    print("\nDas Programm ist fertig geladen!")
