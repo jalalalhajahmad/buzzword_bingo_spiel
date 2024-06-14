@@ -1,22 +1,46 @@
 import time
 from tqdm import tqdm
-
-#Willkommen-Bildschirm
-def welcomescreen():
-    print("**")
-    print("*                                      ")
-    print("          Willkommen!                 ")
-    print("                                      ")
-    print("   Das Programm wird geladen...       ")
-    print("                                      *")
-    print("**")
+#Willkomen-Bildschirm
+def welcome_screen():
+    print("****************************************")
+    print("*                                      *")
+    print("*          Willkommen!                 *")
+    print("*                                      *")
+    print("*   Das Programm wird geladen...       *")
+    print("*                                      *")
+    print("****************************************")
     time.sleep(2)  
 #Ladeanimation
-def loadinganimation(duration=5):
-    for i in tqdm(range(101), desc="Laden", ncols=100, unit="%", ascii=True, barformat="{desc}: |{bar}| {percentage:3.0f}%"):
+def loading_animation(duration=5):
+    for i in tqdm(range(101), desc="Laden", ncols=100, unit="%", ascii=True, bar_format="{desc}: |{bar}| {percentage:3.0f}%"):
         time.sleep(duration / 100)
 
-if _name == "__main":
+def get_player_data(player_num):
+    name = input(f"Geben Sie den Namen des Spielers {player_num} ein: ")
+    age = input(f"Geben Sie das Alter des Spielers {player_num} ein: ")
+    return name, age
+
+def buzzword_bingo_screen():
+    print("\n****************************************")
+    print("*                                      *")
+    print("*          Buzzword-Bingo!             *")
+    print("*                                      *")
+    print("*   Viel Spaß beim Spielen!            *")
+    print("*                                      *")
+    print("****************************************")
+
+if __name__ == "__main__":
     welcome_screen()
     loading_animation()
     print("\nDas Programm ist fertig geladen!")
+    
+    # Abfrage der Daten von Spieler 1 und Spieler 2
+    player1_name, player1_age = get_player_data(1)
+    player2_name, player2_age = get_player_data(2)
+    
+    # Zeige die eingegebenen Daten 
+    print(f"\nSpieler 1: Name = {player1_name}, Alter = {player1_age}")
+    print(f"Spieler 2: Name = {player2_name}, Alter = {player2_age}")
+    
+    buzzword_bingo_screen()
+
