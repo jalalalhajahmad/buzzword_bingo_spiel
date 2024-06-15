@@ -1,5 +1,18 @@
 import time
 from tqdm import tqdm
+import random
+
+# Liste der Buzzwords für das Spiel
+buzzwords = [
+    "Synergie", "Rating", "Wertschöpfend", "Benefits", "Ergebnisorientiert", "Nachhaltig", "Hut aufhaben", "Visionen",
+    "Zielführend", "Global Player", "Rund sein", "Szenario", "Diversity", "Corporate Identity", "Fokussieren", "Impact",
+    "Target", "Benchmark", "Herausforderung(en)/Challenges", "Gadget", "Synergie", "Value", "Smart", "Web 2.0 oder 3.0",
+    "Qualität", "Big Picture", "Revolution", "Pro-aktiv", "Game-changing", "Blog", "Community", "Social Media", "SOA",
+    "Skalierbar", "Return on Invest (ROI)", "Wissenstransfer", "Best Practice", "Positionierung/Positionieren",
+    "Committen", "Geforwarded", "Transparent", "Open Innovation", "Out-of-the-box", "Dissemination", "Blockchain",
+    "Skills", "Gap", "Follower", "Win-Win", "Kernkompetenz"
+]
+
 #Willkomen-Bildschirm
 def welcome_screen():
     print("****************************************")
@@ -10,10 +23,14 @@ def welcome_screen():
     print("*                                      *")
     print("****************************************")
     time.sleep(2)  
+
 #Ladeanimation
 def loading_animation(duration=5):
-    for i in tqdm(range(101), desc="Laden", ncols=100, unit="%", ascii=True, bar_format="{desc}: |{bar}| {percentage:3.0f}%"):
+    for _ in range(101):
+        print("\rLaden: [%-20s] %d%%" % ('=' * (_ // 5), _), end='', flush=True)
         time.sleep(duration / 100)
+    print("\nDas Programm ist fertig geladen!")
+
 
 def get_player_data(player_num):
     name = input(f"Geben Sie den Namen des Spielers {player_num} ein: ")
@@ -29,11 +46,22 @@ def buzzword_bingo_screen():
     print("*                                      *")
     print("****************************************")
 
-if __name__ == "__main__":
+def create_bingo_card(words, width, height):
+    random.shuffle(words)
+    card = [words[i * width:(i + 1) * width] for i in range(height)]
+    if width == height and width in [5, 7]:
+        card[height // 2][width // 2] = "Joker"  # Joker in der Mitte für 5x5 oder 7x7 Bingokarten
+    return card
+
+def print_bingo_card(card):
+    for row in card:
+        print(" | ".join(row))
+        print("-" * (len(row) * 4 - 1))
+
+def main():
     welcome_screen()
     loading_animation()
-    print("\nDas Programm ist fertig geladen!")
-    
+
     # Abfrage der Daten von Spieler 1 und Spieler 2
     player1_name, player1_age = get_player_data(1)
     player2_name, player2_age = get_player_data(2)
@@ -41,6 +69,19 @@ if __name__ == "__main__":
     # Zeige die eingegebenen Daten 
     print(f"\nSpieler 1: Name = {player1_name}, Alter = {player1_age}")
     print(f"Spieler 2: Name = {player2_name}, Alter = {player2_age}")
-    
+
+ # Bingokarten erstellen
+    card1 = create_bingo_card(buzzwords, 5, 5)
+    card2 = create_bingo_card(buzzwords, 5, 5)
+
+    print("\nSpieler 1 Bingokarte:")
+    print_bingo_card(card1)
+
+    print("\nSpieler 2 Bingokarte:")
+    print_bingo_card(card2)
+
     buzzword_bingo_screen()
+
+if __name__ == "__main__":
+    main()
 
