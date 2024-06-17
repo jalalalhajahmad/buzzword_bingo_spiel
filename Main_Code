@@ -58,6 +58,33 @@ def print_bingo_card(card):
         print(" | ".join(row))
         print("-" * (len(row) * 4 - 1))
 
+def mark_word_on_card(card, word):
+    for i, row in enumerate(card):
+        if word in row:
+            j = row.index(word)
+            card[i][j] = "X"  # Markierung des Wortes auf der Bingokarte mit "X"
+
+def check_win_condition(card):
+    # Überprüfung auf 5 durchgestrichene Wörter in horizontalen Reihen
+    for row in card:
+        if all([cell == "X" for cell in row]):
+            return True
+
+    # Überprüfung auf 5 durchgestrichene Wörter in vertikalen Reihen
+    for col in range(len(card[0])):
+        if all([card[row][col] == "X" for row in range(len(card))]):
+            return True
+
+    # Überprüfung auf 5 durchgestrichene Wörter in diagonalen Reihen (von links oben nach rechts unten)
+    if all([card[i][i] == "X" for i in range(len(card))]):
+        return True
+
+    # Überprüfung auf 5 durchgestrichene Wörter in diagonalen Reihen (von rechts oben nach links unten)
+    if all([card[i][len(card)-1-i] == "X" for i in range(len(card))]):
+        return True
+
+    return False
+
 def main():
     welcome_screen()
     loading_animation()
