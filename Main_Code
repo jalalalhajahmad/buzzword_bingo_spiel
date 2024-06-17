@@ -1,6 +1,6 @@
 import time
-from tqdm import tqdm
 import random
+import itertools
 
 # Liste der Buzzwords für das Spiel
 buzzwords = [
@@ -13,7 +13,11 @@ buzzwords = [
     "Skills", "Gap", "Follower", "Win-Win", "Kernkompetenz"
 ]
 
-#Willkomen-Bildschirm
+# Joker-Symbol für Bingokarten
+JOKER = "Joker"
+
+# Funktionen für Bingokarten und Spielablauf
+
 def welcome_screen():
     print("****************************************")
     print("*                                      *")
@@ -22,15 +26,13 @@ def welcome_screen():
     print("*   Das Programm wird geladen...       *")
     print("*                                      *")
     print("****************************************")
-    time.sleep(2)  
+    time.sleep(2)  # Kurze Pause, um den Willkommen-Bildschirm anzuzeigen
 
-#Ladeanimation
 def loading_animation(duration=5):
     for _ in range(101):
         print("\rLaden: [%-20s] %d%%" % ('=' * (_ // 5), _), end='', flush=True)
         time.sleep(duration / 100)
     print("\nDas Programm ist fertig geladen!")
-
 
 def get_player_data(player_num):
     name = input(f"Geben Sie den Namen des Spielers {player_num} ein: ")
@@ -50,7 +52,7 @@ def create_bingo_card(words, width, height):
     random.shuffle(words)
     card = [words[i * width:(i + 1) * width] for i in range(height)]
     if width == height and width in [5, 7]:
-        card[height // 2][width // 2] = "Joker"  # Joker in der Mitte für 5x5 oder 7x7 Bingokarten
+        card[height // 2][width // 2] = JOKER  # Joker in der Mitte für 5x5 oder 7x7 Bingokarten
     return card
 
 def print_bingo_card(card):
@@ -85,19 +87,32 @@ def check_win_condition(card):
 
     return False
 
+def play_buzzword_bingo(player_name, card):
+    for word in buzzwords:
+        print(f"\nNächstes Wort: {word}")
+        input("Drücken Sie Enter, um fortzufahren...")
+
+        mark_word_on_card(card, word)
+        print(f"\nAktuelle Bingokarte von {player_name}:")
+        print_bingo_card(card)
+
+        if check_win_condition(card):
+            return True
+
+    return False
+
 def main():
     welcome_screen()
     loading_animation()
 
-    # Abfrage der Daten von Spieler 1 und Spieler 2
+    # Spielerdaten abfragen
     player1_name, player1_age = get_player_data(1)
     player2_name, player2_age = get_player_data(2)
-    
-    # Zeige die eingegebenen Daten 
+
     print(f"\nSpieler 1: Name = {player1_name}, Alter = {player1_age}")
     print(f"Spieler 2: Name = {player2_name}, Alter = {player2_age}")
 
- # Bingokarten erstellen
+    # Bingokarten erstellen
     card1 = create_bingo_card(buzzwords, 5, 5)
     card2 = create_bingo_card(buzzwords, 5, 5)
 
@@ -109,6 +124,22 @@ def main():
 
     buzzword_bingo_screen()
 
+    # Spielablauf
+    winner = None
+    while not winner:
+        # Spieler 1 ist an der Reihe
+        print(f"\n{player1_name} ist an der Reihe:")
+        if play_buzzword_bingo(player1_name, card1):
+            winner = player1_name
+            break
+
+        # Spieler 2 ist an der Reihe
+        print(f"\n{player2_name} ist an der Reihe:")
+        if play_buzzword_bingo(player2_name, card2):
+            winner = player2_name
+            break
+
+    print(f"\nHerzlichen Glückwunsch, {winner} hat gewonnen!")
+
 if __name__ == "__main__":
     main()
-
