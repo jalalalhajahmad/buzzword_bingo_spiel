@@ -3,6 +3,7 @@ import random
 import argparse
 import sys
 import os
+import tqdm
 
 # Argument parsing
 parser = argparse.ArgumentParser(description='Buzzword Bingo Spiel.')
@@ -24,49 +25,49 @@ def read_words_from_file(filepath):
         print(f"Error reading file {filepath}: {e}")
         sys.exit(1)
 
-# Funktionen für Bingokarten und Spielablauf
 
 def welcome_screen():
+    """Display a welcome screen."""
     print("****************************************")
     print("*                                      *")
     print("*          Willkommen!                 *")
     print("*                                      *")
-    print("*   Das Programm wird geladen...       *")
+    print("*     Das Spiel wird geladen...        *")
     print("*                                      *")
     print("****************************************")
-    time.sleep(2)  # Kurze Pause, um den Willkommen-Bildschirm anzuzeigen
+    time.sleep(2)
+
 
 def loading_animation(duration=5):
-    for _ in range(101):
-        print("\rLaden: [%-20s] %d%%" % ('=' * (_ // 5), _), end='', flush=True)
+    """Display a loading animation."""
+    for _ in tqdm.tqdm(range(101), desc="Laden", ncols=100, unit="%", ascii=True,
+                       bar_format="{desc}: |{bar}| {percentage:3.0f}%"):
         time.sleep(duration / 100)
-    print("\nDas Programm ist fertig geladen!")
 
-def get_player_data(player_num):
-    name = input(f"Geben Sie den Namen des Spielers {player_num} ein: ")
-    age = input(f"Geben Sie das Alter des Spielers {player_num} ein: ")
-    return name, age
-
-def buzzword_bingo_screen():
-    print("\n****************************************")
-    print("*                                      *")
-    print("*          Buzzword-Bingo!             *")
-    print("*                                      *")
-    print("*   Viel Spaß beim Spielen!            *")
-    print("*                                      *")
-    print("****************************************")
 
 def create_bingo_card(words, width, height):
+    """Create a bingo card with given words, width, and height."""
     random.shuffle(words)
     card = [words[i * width:(i + 1) * width] for i in range(height)]
     if width == height and width in [5, 7]:
-        card[height // 2][width // 2] = JOKER  # Joker in der Mitte für 5x5 oder 7x7 Bingokarten
+        middle_index = width // 2
+        card[height // 2][middle_index] = "X"  # Ensure middle cell is marked
     return card
 
+
 def print_bingo_card(card):
+    """Print the bingo card in a table format with 'X' for marked words."""
+    max_word_length = max(len(word) for row in card for word in row)
     for row in card:
-        print(" | ".join(row))
-        print("-" * (len(row) * 4 - 1))
+        line = "+".join(["-" * (max_word_length + 2)] * len(row))
+        print(f"+{line}+")
+        for word in row:
+            display_word = "X" if word == "X" else word
+            print(f"| {display_word.center(max_word_length)} ", end="")
+        print("|")
+    line = "+".join(["-" * (max_word_length + 2)] * len(card[0]))
+    print(f"+{line}+")
+
 
 def mark_word_on_card(card, word):
     for i, row in enumerate(card):
