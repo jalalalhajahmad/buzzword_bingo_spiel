@@ -1,6 +1,28 @@
 import time
 import random
-import itertools
+import argparse
+import sys
+import os
+
+# Argument parsing
+parser = argparse.ArgumentParser(description='Buzzword Bingo Spiel.')
+parser.add_argument('-xaxis', type=int, required=True, help='Anzahl der Felder in der Breite')
+parser.add_argument('-yaxis', type=int, required=True, help='Anzahl der Felder in der Höhe')
+parser.add_argument('-wordfile', type=str, required=True, help='Pfad zur Textdatei mit den Wörtern')
+args = parser.parse_args()
+
+def read_words_from_file(filepath):
+    """Read words from a file and return them as a list."""
+    try:
+        with open(filepath, 'r', encoding='utf-8') as file:
+            words = [line.strip() for line in file if line.strip()]
+        return words
+    except FileNotFoundError:
+        print(f"Error: File {filepath} not found.")
+        sys.exit(1)
+    except Exception as e:
+        print(f"Error reading file {filepath}: {e}")
+        sys.exit(1)
 
 # Funktionen für Bingokarten und Spielablauf
 
