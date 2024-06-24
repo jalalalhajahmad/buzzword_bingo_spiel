@@ -14,6 +14,8 @@ parser.add_argument('-yaxis', type=int, required=True, help='Anzahl der Felder i
 parser.add_argument('-wordfile', type=str, required=True, help='Pfad zur Textdatei mit den Wörtern')
 args = parser.parse_args()
 
+LOG_DIR = "logs"
+
 def read_words_from_file(filepath):
     """Read words from a file and return them as a list."""
     try:
@@ -133,6 +135,31 @@ def player_process(pipe, player_num, width, height, words):
         log_message = f"{timestamp} Wort {word} markiert"
         write_to_log(player_num, log_message)
 
+def write_to_log(player_num, message):
+    """Write a message to the log file for a specific player."""
+    timestamp = datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
+    filename = os.path.join(LOG_DIR, f"bingo-Spieler{player_num}.txt")
+    with open(filename, 'a') as log_file:
+        log_file.write(message + "\n")
+
+def save_logs_to_file():
+    """Save all player logs to a single file."""
+    log_files = [f for f in os.listdir(LOG_DIR) if f.endswith('.txt') and f.startswith('bingo-Spieler')]
+
+    if not log_files:
+        print("Keine Log-Dateien gefunden.")
+        return
+
+    with open(os.path.join(LOG_DIR, 'Log-Datei.txt'), 'w') as output_file:
+        output_file.write("Zusammengeführte Log-Datei\n")
+        output_file.write("=" * 50 + "\n\n")
+
+        for log_file in log_files:
+            output_file.write(f"Log-Datei: {log_file}\n")
+            output_file.write("=" * 50 + "\n")
+            with open(os.path.join(LOG_DIR, log_file), 'r') as input_file:
+                output_file.write(input_file.read())
+            output_file.write("\n\n")
 
 def main():
     welcome_screen()
