@@ -1,9 +1,11 @@
 import time
 import random
+from multiprocessing import Process, Pipe
 import argparse
 import sys
 import os
 import tqdm
+from datetime import datetime
 
 # Argument parsing
 parser = argparse.ArgumentParser(description='Buzzword Bingo Spiel.')
@@ -69,46 +71,68 @@ def print_bingo_card(card):
     print(f"+{line}+")
 
 
-def mark_word_on_card(card, word):
-    for i, row in enumerate(card):
-        if word in row:
-            j = row.index(word)
-            card[i][j] = "X"  # Markierung des Wortes auf der Bingokarte mit "X"
-
-def check_win_condition(card):
-    # Überprüfung auf 5 durchgestrichene Wörter in horizontalen Reihen
+def check_win(card):
+    """Check if there is a win condition in the bingo card."""
+    # Check rows
     for row in card:
-        if all([cell == "X" for cell in row]):
+        if all(cell == "X" for cell in row):
             return True
-
-    # Überprüfung auf 5 durchgestrichene Wörter in vertikalen Reihen
+    # Check columns
     for col in range(len(card[0])):
-        if all([card[row][col] == "X" for row in range(len(card))]):
+        if all(row[col] == "X" for row in card):
             return True
-
-    # Überprüfung auf 5 durchgestrichene Wörter in diagonalen Reihen (von links oben nach rechts unten)
-    if all([card[i][i] == "X" for i in range(len(card))]):
+    # Check diagonals
+    if all(card[i][i] == "X" for i in range(len(card))):
         return True
-
-    # Überprüfung auf 5 durchgestrichene Wörter in diagonalen Reihen (von rechts oben nach links unten)
-    if all([card[i][len(card)-1-i] == "X" for i in range(len(card))]):
+    if all(card[i][len(card) - 1 - i] == "X" for i in range(len(card))):
         return True
-
     return False
 
-def play_buzzword_bingo(player_name, card):
-    for word in buzzwords:
-        print(f"\nNächstes Wort: {word}")
-        input("Drücken Sie Enter, um fortzufahren...")
 
-        mark_word_on_card(card, word)
-        print(f"\nAktuelle Bingokarte von {player_name}:")
-        print_bingo_card(card)
+def player_process(pipe, player_num, width, height, words):
+    """Process for each player to handle their bingo card and actions."""
+    name, _ = pipe.recv()  # Receive player name, ignore age
+    bingo_card = create_bingo_card(words, width, height)
+    pipe.send(bingo_card)
 
-        if check_win_condition(card):
-            return True
+    while True:
+        word = pipe.recv()
+        response = pipe.recv()
 
-    return False
+        if response.lower() == 'j':
+            marked = False
+            mark_row = -1
+            mark_col = -1
+
+            for i in range(height):
+                for j in range(width):
+                    if bingo_card[i][j] == word:
+                        bingo_card[i][j] = "X"
+                        marked = True
+                        mark_row = i
+                        mark_col = j
+                        break
+                if marked:
+                    break
+
+            pipe.send((player_num, word, check_win(bingo_card), mark_row, mark_col))
+        else:
+            pipe.send(None)
+
+        # Send updated card back to main process
+        pipe.send(bingo_card)
+
+        # Ask if player wants to undo their decision
+        undo_response = pipe.recv()
+        if undo_response.lower() == 'j' and response.lower() == 'j':
+            # Undo marking
+            bingo_card[mark_row][mark_col] = word
+
+        # Log current action
+        timestamp = datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
+        log_message = f"{timestamp} Wort {word} markiert"
+        write_to_log(player_num, log_message)
+
 
 def main():
     welcome_screen()
