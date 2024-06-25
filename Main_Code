@@ -209,6 +209,50 @@ def main():
         print(f"\nSpieler {i + 1} ({players[i][0]}) Bingokarte:")
         print_bingo_card(card)
 
+    random.shuffle(words_from_file)
+    for word in words_from_file:
+        for i in range(num_players):
+            parent_conns[i].send(word)
+
+            response = input(f"Spieler {i + 1}, hast du das Wort '{word}'? (j/n) ")
+            parent_conns[i].send(response)
+
+            result = parent_conns[i].recv()
+            if isinstance(result, tuple) and len(result) >= 3:
+                player_num, word, win, mark_row, mark_col = result[:5]
+                if win:
+                    print(f"\nSpieler {player_num} ({players[player_num - 1][0]}) hat gewonnen!")
+                    write_to_log(player_num, f"{datetime.now().strftime('%Y-%m-%d-%H-%M-%S')} Sieg")
+                    parent_conns[player_num - 1].send(None)
+
+                    if parent_conns[player_num - 1].poll():
+                        winner_card = parent_conns[player_num - 1].recv()
+                        print(f"\nAktualisierte Gewinnerkarte für Spieler {player_num} ({players[player_num - 1][0]}):")
+                        print_bingo_card(winner_card)
+                    else:
+                        print(f"Die Verbindung zu Spieler {player_num} wurde geschlossen. Kann keine Gewinnerkarte empfangen.")
+
+                    for i in range(num_players):
+                        write_to_log(i + 1, f"{datetime.now().strftime('%Y-%m-%d-%H-%M-%S')} Ende des Spiels")
+
+                    for p in processes:
+                        p.terminate()
+                    save_logs_to_file()
+                    sys.exit(0)
+
+        for i in range(num_players):
+            updated_card = parent_conns[i].recv()
+            cards[i] = updated_card
+            print(f"\nAktualisierte Bingokarte für Spieler {i + 1} ({players[i][0]}):")
+            print_bingo_card(updated_card)
+
+    for p in processes:
+        p.join()
+
+    save_logs_to_file()
+    print("Log-Dateien wurden erfolgreich in 'Log-Datei.txt' gespeichert.")
+
+
 
 if __name__ == "__main__":
     main()
