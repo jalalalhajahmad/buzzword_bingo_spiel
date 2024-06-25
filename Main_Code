@@ -162,44 +162,53 @@ def save_logs_to_file():
             output_file.write("\n\n")
 
 def main():
+    if not os.path.exists(LOG_DIR):
+        os.makedirs(LOG_DIR)
+
     welcome_screen()
     loading_animation()
+    print("\nDas Programm ist fertig geladen!")
 
-    # Spielerdaten abfragen
-    player1_name, player1_age = get_player_data(1)
-    player2_name, player2_age = get_player_data(2)
+    words_from_file = read_words_from_file(args.wordfile)
+    if len(words_from_file) < args.xaxis * args.yaxis:
+        print("Fehler: Nicht genug Wörter in der Datei.")
+        sys.exit(1)
 
-    print(f"\nSpieler 1: Name = {player1_name}, Alter = {player1_age}")
-    print(f"Spieler 2: Name = {player2_name}, Alter = {player2_age}")
+    num_players = int(input("Wie viele Spieler nehmen teil? "))
 
-    # Bingokarten erstellen
-    card1 = create_bingo_card(buzzwords, 5, 5)
-    card2 = create_bingo_card(buzzwords, 5, 5)
+    if num_players < 2:
+        print("Mindestens zwei Spieler werden benötigt.")
+        sys.exit(1)
 
-    print("\nSpieler 1 Bingokarte:")
-    print_bingo_card(card1)
+    parent_conns = []
+    child_conns = []
+    players = []
 
-    print("\nSpieler 2 Bingokarte:")
-    print_bingo_card(card2)
+    for i in range(num_players):
+        parent_conn, child_conn = Pipe()
+        parent_conns.append(parent_conn)
+        child_conns.append(child_conn)
 
-    buzzword_bingo_screen()
+        player_name = input(f"Geben Sie den Namen des Spielers {i + 1} ein: ")
+        # player_age = input(f"Geben Sie das Alter des Spielers {i + 1} ein: ")
 
-    # Spielablauf
-    winner = None
-    while not winner:
-        # Spieler 1 ist an der Reihe
-        print(f"\n{player1_name} ist an der Reihe:")
-        if play_buzzword_bingo(player1_name, card1):
-            winner = player1_name
-            break
+        players.append((player_name, None))  # Don't ask for age
 
-        # Spieler 2 ist an der Reihe
-        print(f"\n{player2_name} ist an der Reihe:")
-        if play_buzzword_bingo(player2_name, card2):
-            winner = player2_name
-            break
+    processes = []
+    cards = []
 
-    print(f"\nHerzlichen Glückwunsch, {winner} hat gewonnen!")
+    for i in range(num_players):
+        p = Process(target=player_process, args=(child_conns[i], i + 1, args.xaxis, args.yaxis, words_from_file))
+        processes.append(p)
+        p.start()
+
+        parent_conns[i].send(players[i])
+        card = parent_conns[i].recv()
+        cards.append(card)
+
+        print(f"\nSpieler {i + 1} ({players[i][0]}) Bingokarte:")
+        print_bingo_card(card)
+
 
 if __name__ == "__main__":
     main()
