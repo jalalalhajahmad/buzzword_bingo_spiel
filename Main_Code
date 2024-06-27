@@ -1,58 +1,40 @@
+import sys
 import time
 import random
 from multiprocessing import Process, Pipe
 import argparse
-import sys
-import os
 import tqdm
 from datetime import datetime
+import os
 import colorama
 from colorama import Fore, Style
 
-
-# Importiere das Modul argparse, um Befehlszeilenargumente zu parsen
-import argparse
-
-# Erstelle einen ArgumentParser-Objekt mit einer Beschreibung des Programms
+# Argument parsing
 parser = argparse.ArgumentParser(description='Buzzword Bingo Spiel.')
-
-# Füge ein Argument hinzu, um die Anzahl der Felder in der Breite zu spezifizieren
 parser.add_argument('-xaxis', type=int, required=True, help='Anzahl der Felder in der Breite')
-
-# Füge ein Argument hinzu, um die Anzahl der Felder in der Höhe zu spezifizieren
 parser.add_argument('-yaxis', type=int, required=True, help='Anzahl der Felder in der Höhe')
-
-# Füge ein Argument hinzu, um den Pfad zur Textdatei mit den Wörtern zu spezifizieren
 parser.add_argument('-wordfile', type=str, required=True, help='Pfad zur Textdatei mit den Wörtern')
-
-# Parse die Argumente, die über die Befehlszeile übergeben wurden
 args = parser.parse_args()
 
-# Nun können die Argumente args.xaxis, args.yaxis und args.wordfile im Programm verwendet werden
+LOG_DIR = "logs"
 
-
-LOG_DIR = "logs" # Verzeichnis, in dem die Log-Dateien gespeichert werden
 
 def read_words_from_file(filepath):
-    """Liest Wörter aus einer Datei und gibt sie als Liste zurück."""
+    """Read words from a file and return them as a list."""
     try:
-        # Öffne die Datei im Lesemodus mit UTF-8-Kodierung
         with open(filepath, 'r', encoding='utf-8') as file:
-            # Lies jede Zeile der Datei, entferne führende und nachgestellte Leerzeichen
-            # und füge sie der Liste hinzu, wenn sie nicht leer ist
             words = [line.strip() for line in file if line.strip()]
-        return words  # Gib die Liste der Wörter zurück
+        return words
     except FileNotFoundError:
-        # Behandle den Fall, dass die Datei nicht gefunden wurde
         print(f"Error: File {filepath} not found.")
-        sys.exit(1)  # Beende das Programm mit einem Fehlerstatus
+        sys.exit(1)
     except Exception as e:
-        # Behandle alle anderen Ausnahmen, die beim Lesen der Datei auftreten können
         print(f"Error reading file {filepath}: {e}")
-        sys.exit(1)  # Beende das Programm mit einem Fehlerstatus
+        sys.exit(1)
+
 
 def welcome_screen():
-    """Zeigt einen stilvollen Begrüßungsbildschirm an."""
+    """Display a stylish welcome screen."""
     print(Fore.YELLOW + r"""
 ██████╗ ██╗   ██╗███████╗███████╗██╗    ██╗ ██████╗ ██████╗ ██████╗     ██████╗ ██╗███╗   ██╗ ██████╗  ██████╗ 
 ██╔══██╗██║   ██║╚══███╔╝╚══███╔╝██║    ██║██╔═══██╗██╔══██╗██╔══██╗    ██╔══██╗██║████╗  ██║██╔════╝ ██╔═══██╗
@@ -87,15 +69,15 @@ def welcome_screen():
 
 
 def loading_animation(duration=5):
-    """Zeigt eine Ladeanimation an."""
+    """Display a loading animation."""
     for _ in tqdm.tqdm(range(101), ncols=100, unit="🔳", ascii=False,
                        bar_format="{desc}: {bar} {percentage:3.0f}%",
                        colour='green'):
-             time.sleep(duration / 200)
+        time.sleep(duration / 200)
 
 
 def create_bingo_card(words, width, height):
-    """Erstellt eine Bingokarte mit den angegebenen Wörtern, der Breite und der Höhe."""
+    """Create a bingo card with given words, width, and height."""
     random.shuffle(words)
     card = [words[i * width:(i + 1) * width] for i in range(height)]
     if width == height and width in [5, 7]:
@@ -105,7 +87,7 @@ def create_bingo_card(words, width, height):
 
 
 def print_bingo_card(card):
-    """Druckt die Bingokarte in Tabellenformat und ersetzt markierte Wörter durch 'X'."""
+    """Print the bingo card in a table format with 'X' for marked words."""
     max_word_length = max(len(word) for row in card for word in row)
     for row in card:
         line = "+".join(["-" * (max_word_length + 2)] * len(row))
@@ -119,47 +101,38 @@ def print_bingo_card(card):
 
 
 def check_win(card):
-   """Überprüft, ob es eine Gewinnbedingung auf der Bingokarte gibt."""
-    # Überprüft die Reihen auf eine Gewinnbedingung
+    """Check if there is a win condition in the bingo card."""
+    # Check rows
     for row in card:
         if all(cell == "X" for cell in row):
             return True
-    # Überprüft die Spalten auf eine Gewinnbedingung
+    # Check columns
     for col in range(len(card[0])):
         if all(row[col] == "X" for row in card):
             return True
-    # Überprüft die erste Diagonale (oben links nach unten rechts) auf eine Gewinnbedingung
+    # Check diagonals
     if all(card[i][i] == "X" for i in range(len(card))):
         return True
-    # Überprüft die zweite Diagonale (oben rechts nach unten links) auf eine Gewinnbedingung
     if all(card[i][len(card) - 1 - i] == "X" for i in range(len(card))):
         return True
     return False
 
 
 def player_process(pipe, player_num, width, height, words):
-    """Prozess für jeden Spieler, um ihre Bingokarte und Aktionen zu verwalten."""
-    # Empfängt den Spielernamen vom Hauptprozess über die Pipe (Alter wird ignoriert)
+    """Process for each player to handle their bingo card and actions."""
     name, _ = pipe.recv()  # Receive player name, ignore age
-
-    # Erstellt eine Bingokarte für den Spieler mit den bereitgestellten Wörtern, Breite und Höhe
     bingo_card = create_bingo_card(words, width, height)
-
-    # Sendet die erstellte Bingokarte zurück an den Hauptprozess
     pipe.send(bingo_card)
 
     while True:
-        # Empfängt ein Wort vom Hauptprozess
         word = pipe.recv()
-        # Empfängt die Antwort des Spielers, ob das Wort markiert werden soll
         response = pipe.recv()
 
-        if response.lower() == 'j': # Wenn die Antwort 'j' ist, markiere das Wort auf der Karte
+        if response.lower() == 'j':
             marked = False
             mark_row = -1
             mark_col = -1
 
-            # Findet und markiert das Wort auf der Bingokarte
             for i in range(height):
                 for j in range(width):
                     if bingo_card[i][j] == word:
@@ -171,86 +144,62 @@ def player_process(pipe, player_num, width, height, words):
                 if marked:
                     break
 
-            # Sendet die Spielernummer, das Wort, den Gewinnstatus und die Position des markierten Wortes zurück
             pipe.send((player_num, word, check_win(bingo_card), mark_row, mark_col))
         else:
-            # Wenn die Antwort nicht 'j' ist, sende None
             pipe.send(None)
 
-        # Sendet die aktualisierte Bingokarte zurück an den Hauptprozess
+        # Send updated card back to main process
         pipe.send(bingo_card)
 
-        # Fragt, ob der Spieler seine Entscheidung rückgängig machen möchte
-        undo_response = pipe.recv()
-        if undo_response.lower() == 'j' and response.lower() == 'j':
-            # Hebt die Markierung auf, wenn der Spieler sich entscheidet, rückgängig zu machen
-            bingo_card[mark_row][mark_col] = word
-
-        # Protokolliert die aktuelle Aktion mit einem Zeitstempel
+        # Log current action
         timestamp = datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
         log_message = f"{timestamp} Wort {word} markiert"
         write_to_log(player_num, log_message)
 
-# Schreibt eine Nachricht in die Log-Datei für einen bestimmten Spieler
+
 def write_to_log(player_num, message):
-    """Schreibt eine Nachricht in die Log-Datei für einen bestimmten Spieler."""
-    # Holt den aktuellen Zeitstempel im angegebenen Format
+    """Write a message to the log file for a specific player."""
     timestamp = datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
-    # Erstellt den Dateinamen basierend auf der Spielernummer
     filename = os.path.join(LOG_DIR, f"bingo-Spieler{player_num}.txt")
-    # Öffnet die Log-Datei im Anhangmodus und schreibt die Nachricht mit einem Zeilenumbruch
     with open(filename, 'a') as log_file:
         log_file.write(message + "\n")
 
-# Speichert alle Spieler-Logs in einer einzelnen Datei
+
 def save_logs_to_file():
-    """Speichert alle Spieler auf eine einzige Datei."""
-    # Listet alle Dateien im Log-Verzeichnis auf, die dem Muster 'bingo-Spieler*.txt' entsprechen
+    """Save all player logs to a single file."""
     log_files = [f for f in os.listdir(LOG_DIR) if f.endswith('.txt') and f.startswith('bingo-Spieler')]
-    # Wenn keine Log-Dateien gefunden werden, gibt eine Nachricht aus und beendet die Funktion
+
     if not log_files:
         print("Keine Log-Dateien gefunden.")
         return
 
-    # Öffnet die Ausgabedatei im Schreibmodus
     with open(os.path.join(LOG_DIR, 'Log-Datei.txt'), 'w') as output_file:
-        # Schreibt den Header für die zusammengeführte Log-Datei
         output_file.write("Zusammengeführte Log-Datei\n")
         output_file.write("=" * 50 + "\n\n")
 
-        # Iteriert über jede Log-Datei
         for log_file in log_files:
-            # Schreibt den Log-Dateinamen als Abschnittsüberschrift in die zusammengeführte Log-Datei
             output_file.write(f"Log-Datei: {log_file}\n")
             output_file.write("=" * 50 + "\n")
-            # Öffnet jede einzelne Log-Datei im Lesemodus
             with open(os.path.join(LOG_DIR, log_file), 'r') as input_file:
-                # Schreibt den Inhalt der einzelnen Log-Datei in die zusammengeführte Log-Datei
                 output_file.write(input_file.read())
-            # Fügt etwas Platz zwischen den Log-Datei-Inhalten in der zusammengeführten Log-Datei hinzu
             output_file.write("\n\n")
 
+
 def main():
-    # Überprüfen, ob das Verzeichnis für Logs existiert, und gegebenenfalls erstellen
     if not os.path.exists(LOG_DIR):
         os.makedirs(LOG_DIR)
 
-    # Begrüßungsbildschirm und Ladeanimation anzeigen
     welcome_screen()
     loading_animation()
     print("\nDas Spiel ist fertig geladen! Um das Spiel zu starten:")
 
-    # Wörter aus der angegebenen Datei lesen
     words_from_file = read_words_from_file(args.wordfile)
-    # Überprüfen, ob genügend Wörter für die Bingokarten vorhanden sind
     if len(words_from_file) < args.xaxis * args.yaxis:
         print(f"{Fore.RED}Fehler: Nicht genug Wörter in der Datei.{Style.RESET_ALL}")
         sys.exit(1)
 
-    # Anzahl der Spieler abfragen
     num_players = int(input("Geben Sie die Anzahl der Spieler ein? "))
 
-    # Mindestens zwei Spieler werden benötigt
     if num_players < 2:
         print(f"{Fore.RED}Mindestens zwei Spieler werden benötigt.{Style.RESET_ALL}")
         sys.exit(1)
@@ -259,19 +208,17 @@ def main():
     child_conns = []
     players = []
 
-    # Spielerinformationen sammeln und Verbindungen für die Interprozesskommunikation erstellen
     for i in range(num_players):
         parent_conn, child_conn = Pipe()
         parent_conns.append(parent_conn)
         child_conns.append(child_conn)
 
         player_name = input(f"Geben Sie den Namen des Spielers {i + 1} ein: ")
-        players.append((player_name, None))  # Alter wird nicht abgefragt
+        players.append((player_name, None))  # Don't ask for age
 
     processes = []
     cards = []
 
-    # Prozesse für die Spieler starten und Bingokarten erstellen
     for i in range(num_players):
         p = Process(target=player_process, args=(child_conns[i], i + 1, args.xaxis, args.yaxis, words_from_file))
         processes.append(p)
@@ -284,14 +231,12 @@ def main():
         print(f"\n{Fore.YELLOW}Spieler {i + 1} ({players[i][0]}) Bingokarte:{Style.RESET_ALL}")
         print_bingo_card(card)
 
-    # Wörter zufällig mischen
     random.shuffle(words_from_file)
     for word in words_from_file:
         responses = []
         for i in range(num_players):
             parent_conns[i].send(word)
 
-            # Abfrage, ob der Spieler das Wort auf seiner Karte hat
             while True:
                 response = input(f"{Fore.CYAN}Spieler {i + 1}, hast du das Wort '{word}'? (j/n) {Style.RESET_ALL}")
                 if response.lower() in ['j', 'n']:
@@ -324,11 +269,10 @@ def main():
 
                 write_to_log(winner, f"{datetime.now().strftime('%Y-%m-%d-%H-%M-%S')} Ende des Spiels")
 
-            # Alle Prozesse beenden und Logs speichern
             for p in processes:
                 p.terminate()
             save_logs_to_file()
-            colorama.deinit()  # Terminalfarben zurücksetzen
+            colorama.deinit()  # Reset terminal colors
             sys.exit(0)
 
         for i, response in responses:
@@ -337,14 +281,14 @@ def main():
             print(f"\n{Fore.YELLOW}Aktualisierte Bingokarte für Spieler {i + 1} ({players[i][0]}):{Style.RESET_ALL}")
             print_bingo_card(updated_card)
 
-    # Warten auf das Ende aller Prozesse
     for p in processes:
         p.join()
 
-    # Logs speichern und Abschlussmeldung
     save_logs_to_file()
     print(f"{Fore.YELLOW}Log-Dateien wurden erfolgreich in 'Log-Datei.txt' gespeichert.{Style.RESET_ALL}")
-    colorama.deinit()  # Terminalfarben zurücksetzen
+    colorama.deinit()  # Reset terminal colors
+
+
 
 if __name__ == "__main__":
     main()
