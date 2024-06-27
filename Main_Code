@@ -91,7 +91,7 @@ def loading_animation(duration=5):
     for _ in tqdm.tqdm(range(101), ncols=100, unit="🔳", ascii=False,
                        bar_format="{desc}: {bar} {percentage:3.0f}%",
                        colour='green'):
-time.sleep(duration / 200)
+             time.sleep(duration / 200)
 
 
 def create_bingo_card(words, width, height):
