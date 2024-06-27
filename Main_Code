@@ -119,38 +119,47 @@ def print_bingo_card(card):
 
 
 def check_win(card):
-    """Check if there is a win condition in the bingo card."""
-    # Check rows
+   """Überprüft, ob es eine Gewinnbedingung auf der Bingokarte gibt."""
+    # Überprüft die Reihen auf eine Gewinnbedingung
     for row in card:
         if all(cell == "X" for cell in row):
             return True
-    # Check columns
+    # Überprüft die Spalten auf eine Gewinnbedingung
     for col in range(len(card[0])):
         if all(row[col] == "X" for row in card):
             return True
-    # Check diagonals
+    # Überprüft die erste Diagonale (oben links nach unten rechts) auf eine Gewinnbedingung
     if all(card[i][i] == "X" for i in range(len(card))):
         return True
+    # Überprüft die zweite Diagonale (oben rechts nach unten links) auf eine Gewinnbedingung
     if all(card[i][len(card) - 1 - i] == "X" for i in range(len(card))):
         return True
     return False
 
 
 def player_process(pipe, player_num, width, height, words):
-    """Process for each player to handle their bingo card and actions."""
+    """Prozess für jeden Spieler, um ihre Bingokarte und Aktionen zu verwalten."""
+    # Empfängt den Spielernamen vom Hauptprozess über die Pipe (Alter wird ignoriert)
     name, _ = pipe.recv()  # Receive player name, ignore age
+
+    # Erstellt eine Bingokarte für den Spieler mit den bereitgestellten Wörtern, Breite und Höhe
     bingo_card = create_bingo_card(words, width, height)
+
+    # Sendet die erstellte Bingokarte zurück an den Hauptprozess
     pipe.send(bingo_card)
 
     while True:
+        # Empfängt ein Wort vom Hauptprozess
         word = pipe.recv()
+        # Empfängt die Antwort des Spielers, ob das Wort markiert werden soll
         response = pipe.recv()
 
-        if response.lower() == 'j':
+        if response.lower() == 'j': # Wenn die Antwort 'j' ist, markiere das Wort auf der Karte
             marked = False
             mark_row = -1
             mark_col = -1
 
+            # Findet und markiert das Wort auf der Bingokarte
             for i in range(height):
                 for j in range(width):
                     if bingo_card[i][j] == word:
@@ -162,20 +171,22 @@ def player_process(pipe, player_num, width, height, words):
                 if marked:
                     break
 
+            # Sendet die Spielernummer, das Wort, den Gewinnstatus und die Position des markierten Wortes zurück
             pipe.send((player_num, word, check_win(bingo_card), mark_row, mark_col))
         else:
+            # Wenn die Antwort nicht 'j' ist, sende None
             pipe.send(None)
 
-        # Send updated card back to main process
+        # Sendet die aktualisierte Bingokarte zurück an den Hauptprozess
         pipe.send(bingo_card)
 
-        # Ask if player wants to undo their decision
+        # Fragt, ob der Spieler seine Entscheidung rückgängig machen möchte
         undo_response = pipe.recv()
         if undo_response.lower() == 'j' and response.lower() == 'j':
-            # Undo marking
+            # Hebt die Markierung auf, wenn der Spieler sich entscheidet, rückgängig zu machen
             bingo_card[mark_row][mark_col] = word
 
-        # Log current action
+        # Protokolliert die aktuelle Aktion mit einem Zeitstempel
         timestamp = datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
         log_message = f"{timestamp} Wort {word} markiert"
         write_to_log(player_num, log_message)
