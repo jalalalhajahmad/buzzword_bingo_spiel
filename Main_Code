@@ -231,20 +231,26 @@ def save_logs_to_file():
             output_file.write("\n\n")
 
 def main():
+    # Überprüfen, ob das Verzeichnis für Logs existiert, und gegebenenfalls erstellen
     if not os.path.exists(LOG_DIR):
         os.makedirs(LOG_DIR)
 
+    # Begrüßungsbildschirm und Ladeanimation anzeigen
     welcome_screen()
     loading_animation()
     print("\nDas Spiel ist fertig geladen! Um das Spiel zu starten:")
 
+    # Wörter aus der angegebenen Datei lesen
     words_from_file = read_words_from_file(args.wordfile)
+    # Überprüfen, ob genügend Wörter für die Bingokarten vorhanden sind
     if len(words_from_file) < args.xaxis * args.yaxis:
         print(f"{Fore.RED}Fehler: Nicht genug Wörter in der Datei.{Style.RESET_ALL}")
         sys.exit(1)
 
+    # Anzahl der Spieler abfragen
     num_players = int(input("Geben Sie die Anzahl der Spieler ein? "))
 
+    # Mindestens zwei Spieler werden benötigt
     if num_players < 2:
         print(f"{Fore.RED}Mindestens zwei Spieler werden benötigt.{Style.RESET_ALL}")
         sys.exit(1)
@@ -253,17 +259,19 @@ def main():
     child_conns = []
     players = []
 
+    # Spielerinformationen sammeln und Verbindungen für die Interprozesskommunikation erstellen
     for i in range(num_players):
         parent_conn, child_conn = Pipe()
         parent_conns.append(parent_conn)
         child_conns.append(child_conn)
 
         player_name = input(f"Geben Sie den Namen des Spielers {i + 1} ein: ")
-        players.append((player_name, None))  # Don't ask for age
+        players.append((player_name, None))  # Alter wird nicht abgefragt
 
     processes = []
     cards = []
 
+    # Prozesse für die Spieler starten und Bingokarten erstellen
     for i in range(num_players):
         p = Process(target=player_process, args=(child_conns[i], i + 1, args.xaxis, args.yaxis, words_from_file))
         processes.append(p)
@@ -276,12 +284,14 @@ def main():
         print(f"\n{Fore.YELLOW}Spieler {i + 1} ({players[i][0]}) Bingokarte:{Style.RESET_ALL}")
         print_bingo_card(card)
 
+    # Wörter zufällig mischen
     random.shuffle(words_from_file)
     for word in words_from_file:
         responses = []
         for i in range(num_players):
             parent_conns[i].send(word)
 
+            # Abfrage, ob der Spieler das Wort auf seiner Karte hat
             while True:
                 response = input(f"{Fore.CYAN}Spieler {i + 1}, hast du das Wort '{word}'? (j/n) {Style.RESET_ALL}")
                 if response.lower() in ['j', 'n']:
@@ -314,10 +324,11 @@ def main():
 
                 write_to_log(winner, f"{datetime.now().strftime('%Y-%m-%d-%H-%M-%S')} Ende des Spiels")
 
+            # Alle Prozesse beenden und Logs speichern
             for p in processes:
                 p.terminate()
             save_logs_to_file()
-            colorama.deinit()  # Reset terminal colors
+            colorama.deinit()  # Terminalfarben zurücksetzen
             sys.exit(0)
 
         for i, response in responses:
@@ -326,14 +337,14 @@ def main():
             print(f"\n{Fore.YELLOW}Aktualisierte Bingokarte für Spieler {i + 1} ({players[i][0]}):{Style.RESET_ALL}")
             print_bingo_card(updated_card)
 
+    # Warten auf das Ende aller Prozesse
     for p in processes:
         p.join()
 
+    # Logs speichern und Abschlussmeldung
     save_logs_to_file()
     print(f"{Fore.YELLOW}Log-Dateien wurden erfolgreich in 'Log-Datei.txt' gespeichert.{Style.RESET_ALL}")
-    colorama.deinit()  # Reset terminal colors
-
-
+    colorama.deinit()  # Terminalfarben zurücksetzen
 
 if __name__ == "__main__":
     main()
