@@ -31,7 +31,7 @@ args = parser.parse_args()
 # Nun können die Argumente args.xaxis, args.yaxis und args.wordfile im Programm verwendet werden
 
 
-LOG_DIR = "logs"
+LOG_DIR = "logs" # Verzeichnis, in dem die Log-Dateien gespeichert werden
 
 def read_words_from_file(filepath):
     """Liest Wörter aus einer Datei und gibt sie als Liste zurück."""
@@ -191,32 +191,43 @@ def player_process(pipe, player_num, width, height, words):
         log_message = f"{timestamp} Wort {word} markiert"
         write_to_log(player_num, log_message)
 
-# Writes a message to the log file for a specific player
+# Schreibt eine Nachricht in die Log-Datei für einen bestimmten Spieler
 def write_to_log(player_num, message):
-    """Write a message to the log file for a specific player."""
+    """Schreibt eine Nachricht in die Log-Datei für einen bestimmten Spieler."""
+    # Holt den aktuellen Zeitstempel im angegebenen Format
     timestamp = datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
+    # Erstellt den Dateinamen basierend auf der Spielernummer
     filename = os.path.join(LOG_DIR, f"bingo-Spieler{player_num}.txt")
+    # Öffnet die Log-Datei im Anhangmodus und schreibt die Nachricht mit einem Zeilenumbruch
     with open(filename, 'a') as log_file:
         log_file.write(message + "\n")
 
-# Saves all player logs to a single file
+# Speichert alle Spieler-Logs in einer einzelnen Datei
 def save_logs_to_file():
-    """Save all player logs to a single file."""
+    """Speichert alle Spieler auf eine einzige Datei."""
+    # Listet alle Dateien im Log-Verzeichnis auf, die dem Muster 'bingo-Spieler*.txt' entsprechen
     log_files = [f for f in os.listdir(LOG_DIR) if f.endswith('.txt') and f.startswith('bingo-Spieler')]
-
+    # Wenn keine Log-Dateien gefunden werden, gibt eine Nachricht aus und beendet die Funktion
     if not log_files:
         print("Keine Log-Dateien gefunden.")
         return
 
+    # Öffnet die Ausgabedatei im Schreibmodus
     with open(os.path.join(LOG_DIR, 'Log-Datei.txt'), 'w') as output_file:
+        # Schreibt den Header für die zusammengeführte Log-Datei
         output_file.write("Zusammengeführte Log-Datei\n")
         output_file.write("=" * 50 + "\n\n")
 
+        # Iteriert über jede Log-Datei
         for log_file in log_files:
+            # Schreibt den Log-Dateinamen als Abschnittsüberschrift in die zusammengeführte Log-Datei
             output_file.write(f"Log-Datei: {log_file}\n")
             output_file.write("=" * 50 + "\n")
+            # Öffnet jede einzelne Log-Datei im Lesemodus
             with open(os.path.join(LOG_DIR, log_file), 'r') as input_file:
+                # Schreibt den Inhalt der einzelnen Log-Datei in die zusammengeführte Log-Datei
                 output_file.write(input_file.read())
+            # Fügt etwas Platz zwischen den Log-Datei-Inhalten in der zusammengeführten Log-Datei hinzu
             output_file.write("\n\n")
 
 def main():
