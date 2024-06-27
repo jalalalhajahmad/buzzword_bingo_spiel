@@ -9,27 +9,47 @@ from datetime import datetime
 import colorama
 from colorama import Fore, Style
 
-# Argument parsing
+
+# Importiere das Modul argparse, um Befehlszeilenargumente zu parsen
+import argparse
+
+# Erstelle einen ArgumentParser-Objekt mit einer Beschreibung des Programms
 parser = argparse.ArgumentParser(description='Buzzword Bingo Spiel.')
+
+# Füge ein Argument hinzu, um die Anzahl der Felder in der Breite zu spezifizieren
 parser.add_argument('-xaxis', type=int, required=True, help='Anzahl der Felder in der Breite')
+
+# Füge ein Argument hinzu, um die Anzahl der Felder in der Höhe zu spezifizieren
 parser.add_argument('-yaxis', type=int, required=True, help='Anzahl der Felder in der Höhe')
+
+# Füge ein Argument hinzu, um den Pfad zur Textdatei mit den Wörtern zu spezifizieren
 parser.add_argument('-wordfile', type=str, required=True, help='Pfad zur Textdatei mit den Wörtern')
+
+# Parse die Argumente, die über die Befehlszeile übergeben wurden
 args = parser.parse_args()
+
+# Nun können die Argumente args.xaxis, args.yaxis und args.wordfile im Programm verwendet werden
+
 
 LOG_DIR = "logs"
 
 def read_words_from_file(filepath):
-    """Read words from a file and return them as a list."""
+    """Liest Wörter aus einer Datei und gibt sie als Liste zurück."""
     try:
+        # Öffne die Datei im Lesemodus mit UTF-8-Kodierung
         with open(filepath, 'r', encoding='utf-8') as file:
+            # Lies jede Zeile der Datei, entferne führende und nachgestellte Leerzeichen
+            # und füge sie der Liste hinzu, wenn sie nicht leer ist
             words = [line.strip() for line in file if line.strip()]
-        return words
+        return words  # Gib die Liste der Wörter zurück
     except FileNotFoundError:
+        # Behandle den Fall, dass die Datei nicht gefunden wurde
         print(f"Error: File {filepath} not found.")
-        sys.exit(1)
+        sys.exit(1)  # Beende das Programm mit einem Fehlerstatus
     except Exception as e:
+        # Behandle alle anderen Ausnahmen, die beim Lesen der Datei auftreten können
         print(f"Error reading file {filepath}: {e}")
-        sys.exit(1)
+        sys.exit(1)  # Beende das Programm mit einem Fehlerstatus
 
 def welcome_screen():
     """a stylish welcome screen."""
