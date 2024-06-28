@@ -34,7 +34,7 @@ def read_words_from_file(filepath):
 
 
 def welcome_screen():
-    """Display a stylish welcome screen."""
+   #Zeigt einen stilvollen Begrüßungsbildschirm mit ASCII-Kunst in gelber Farbe an und wartet 2 Sekunden, bevor das Programm fortgesetzt wird.
     print(Fore.YELLOW + r"""
 ██████╗ ██╗   ██╗███████╗███████╗██╗    ██╗ ██████╗ ██████╗ ██████╗     ██████╗ ██╗███╗   ██╗ ██████╗  ██████╗ 
 ██╔══██╗██║   ██║╚══███╔╝╚══███╔╝██║    ██║██╔═══██╗██╔══██╗██╔══██╗    ██╔══██╗██║████╗  ██║██╔════╝ ██╔═══██╗
@@ -69,15 +69,14 @@ def welcome_screen():
 
 
 def loading_animation(duration=5):
-    """Display a loading animation."""
+    #Zeigt eine Ladeanimation mit einem Fortschrittsbalken an, der schrittweise über die angegebene Dauer von 0% auf 100% ansteigt.
     for _ in tqdm.tqdm(range(101), ncols=100, unit="🔳", ascii=False,
                        bar_format="{desc}: {bar} {percentage:3.0f}%",
                        colour='green'):
         time.sleep(duration / 200)
 
-
 def create_bingo_card(words, width, height):
-    """Create a bingo card with given words, width, and height."""
+#Erstellt eine Bingo-Karte mit den gegebenen Wörtern, der Breite und der Höhe und markiert das mittlere Feld mit "X" bei quadratischen Karten (5x5 oder 7x7).
     random.shuffle(words)
     card = [[words[row * width + col] for col in range(width)] for row in range(height)]
     if width == height and width in [5, 7]:
@@ -87,7 +86,7 @@ def create_bingo_card(words, width, height):
 
 
 def print_bingo_card(card):
-    """Print the bingo card in a table format with 'X' for marked words."""
+    #Gibt die Bingo-Karte im Tabellenformat aus, wobei 'X' für markierte Wörter verwendet wird.
     max_word_length = max(len(word) for row in card for word in row)
     for i, row in enumerate(card):
         line = "+".join(["-" * (max_word_length + 2)] * len(row))
