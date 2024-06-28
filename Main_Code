@@ -213,6 +213,63 @@ def save_logs_to_file():
                 output_file.write(input_file.read())
             output_file.write("\n\n")
 
+def play_game(parent_conns, processes, cards, players, width, height):
+    player_names = [player[0] for player in players]
+
+    while True:
+        # Collect player choices
+        player_choices = []
+        for i in range(len(players)):
+            current_player_name = player_names[i]
+            current_player_index = i
+
+            try:
+                print(f"\n{Fore.YELLOW}Spieler {current_player_name} ist an der Reihe.{Style.RESET_ALL}")
+
+                while True:
+                    choice = input(f"\nGeben Sie Koordinaten (z.B. '1 1') ein oder 's' zum Überspringen oder 'r' zum Verbessern oder 'q' zum Beenden: {Style.RESET_ALL}")
+
+                    if choice.lower() == 'q':
+                        for conn in parent_conns:
+                            conn.send('quit')
+                        return
+                    elif choice.lower() == 's':
+                        break
+                    elif choice.lower() == 'r':
+                        undo_choice = input("\nGeben Sie die Koordinaten ein, die rückgängig gemacht oder markiert werden sollen (z.B. '1 1'): ")
+                        try:
+                            col, row = map(int, undo_choice.split())
+                            if 1 <= row <= height and 1 <= col <= width:
+                                parent_conns[current_player_index].send(f"undo {col - 1} {row - 1}")  # Koordinaten in 0-basierten Index umwandeln
+                                updated_card = parent_conns[current_player_index].recv()
+                                cards[current_player_index] = updated_card  # Aktualisierte Karte speichern
+                            else:
+                                print(f"\n{Fore.RED}Ungültige Koordinaten. Bitte geben Sie erneut ein.{Style.RESET_ALL}")
+                        except ValueError:
+                            print(f"\n{Fore.RED}Ungültige Eingabe.{Style.RESET_ALL}")
+                    else:
+                        try:
+                            col, row = map(int, choice.split())  # Koordinaten eingeben
+                            if 1 <= row <= height and 1 <= col <= width:
+                                # Convert to 0-based index for internal use
+                                row -= 1
+                                col -= 1
+
+                                parent_conns[current_player_index].send(f"toggle {col} {row}")  # Markierung umschalten
+
+                                # Warten auf Antwort (aktualisierte Bingo-Karte nicht sofort drucken)
+                                updated_card = parent_conns[current_player_index].recv()
+                                cards[current_player_index] = updated_card  # Lokale Kartenliste aktualisieren
+                                player_choices.append(updated_card)
+                                break
+                            else:
+                                print(f"\n{Fore.RED}Ungültige Koordinaten. Bitte geben Sie erneut ein.{Style.RESET_ALL}")
+                        except ValueError:
+                            print(f"\n{Fore.RED}Ungültige Eingabe.{Style.RESET_ALL}")
+
+            except ValueError:
+                print(f"\n{Fore.RED}Ungültige Eingabe.{Style.RESET_ALL}")
+
 
 def main():
     if not os.path.exists(LOG_DIR):
