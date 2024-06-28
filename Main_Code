@@ -105,59 +105,85 @@ def print_bingo_card(card):
 
 def check_win(card):
     """Check if there is a win condition in the bingo card."""
+    winners = []
+
     # Check rows
-    for row in card:
+    for i, row in enumerate(card):
         if all(cell == "X" for cell in row):
-            return True
+            winners.append(i + 1)  # Player number is index + 1
+
     # Check columns
     for col in range(len(card[0])):
         if all(row[col] == "X" for row in card):
-            return True
+            winners.append(col + 1)  # Player number is index + 1
+
     # Check diagonals
     if all(card[i][i] == "X" for i in range(len(card))):
-        return True
+        winners.append("diagonal1")  # Diagonal 1 win
     if all(card[i][len(card) - 1 - i] == "X" for i in range(len(card))):
-        return True
-    return False
+        winners.append("diagonal2")  # Diagonal 2 win
+
+    return winners
+
+
+
+def toggle_button(card, row, col):
+    """Toggle the state of a cell in the bingo card."""
+    card[row][col] = "X" if card[row][col] == " " else "X"
 
 
 def player_process(pipe, player_num, width, height, words):
     """Process for each player to handle their bingo card and actions."""
-    name, _ = pipe.recv()  # Receive player name, ignore age
-    bingo_card = create_bingo_card(words, width, height)
-    pipe.send(bingo_card)
+    try:
+        name, _ = pipe.recv()  # Receive player name, ignore age
+        write_to_log(player_num, f"Spieler {player_num} - Start des Spiels")
 
-    while True:
-        word = pipe.recv()
-        response = pipe.recv()
-
-        if response.lower() == 'j':
-            marked = False
-            mark_row = -1
-            mark_col = -1
-
-            for i in range(height):
-                for j in range(width):
-                    if bingo_card[i][j] == word:
-                        bingo_card[i][j] = "X"
-                        marked = True
-                        mark_row = i
-                        mark_col = j
-                        break
-                if marked:
-                    break
-
-            pipe.send((player_num, word, check_win(bingo_card), mark_row, mark_col))
-        else:
-            pipe.send(None)
-
-        # Send updated card back to main process
+        bingo_card = create_bingo_card(words, width, height)
         pipe.send(bingo_card)
 
-        # Log current action
-        timestamp = datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
-        log_message = f"{timestamp} Wort {word} markiert"
-        write_to_log(player_num, log_message)
+        while True:
+            message = pipe.recv()
+            if message == 'quit':
+                write_to_log(player_num, f"Spieler {player_num} - Ende des Spiels")
+                break
+            elif message.startswith('toggle'):
+                _, col, row = message.split()
+                row, col = int(row), int(col)
+                if 0 <= row < height and 0 <= col < width:
+                    toggle_button(bingo_card, row, col)
+                    write_to_log(player_num, f"{words[row * width + col]} ({col + 1}/{row + 1}) markiert")
+                    pipe.send(bingo_card)
+                else:
+                    write_to_log(player_num, f"Spieler {player_num} - Ungültige Koordinaten.")
+                    print("Ungültige Koordinaten. Bitte geben Sie erneut ein.")
+            elif message == 'get_card':
+                pipe.send(bingo_card)
+            elif message == 'undo':
+                for r in range(height):
+                    for c in range(width):
+                        if bingo_card[r][c] == "X":
+                            bingo_card[r][c] = words[r * width + c]
+                pipe.send(bingo_card)
+            elif message.startswith('undo '):
+                _, col, row = message.split()
+                row, col = int(row), int(col)
+                if 0 <= row < height and 0 <= col < width:
+                    if bingo_card[row][col] == "X":
+                        bingo_card[row][col] = words[row * width + col]
+                        pipe.send(bingo_card)
+                        write_to_log(player_num, f"{words[row * width + col]} ({col + 1}/{row + 1}) rückgängig gemacht")
+                    else:
+                        bingo_card[row][col] = "X"
+                        pipe.send(bingo_card)
+                        write_to_log(player_num, f"{words[row * width + col]} ({col + 1}/{row + 1}) markiert")
+                else:
+                    write_to_log(player_num, f"Spieler {player_num} - Ungültige Koordinaten.")
+                    print("Ungültige Koordinaten. Bitte geben Sie erneut ein.")
+    except Exception as e:
+        write_to_log(player_num, f"Spieler {player_num} - Fehler: {str(e)}")
+        print(f"Fehler in Spieler {player_num}: {e}")
+    finally:
+        write_to_log(player_num, f"Spieler {player_num} - Spiel beendet")
 
 
 def write_to_log(player_num, message):
