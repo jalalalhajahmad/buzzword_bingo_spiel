@@ -270,6 +270,35 @@ def play_game(parent_conns, processes, cards, players, width, height):
             except ValueError:
                 print(f"\n{Fore.RED}Ungültige Eingabe.{Style.RESET_ALL}")
 
+         # After all players have made their move, print updated cards
+        print(f"{Fore.YELLOW}\nAktualisierte Bingo-Karten:{Style.RESET_ALL}")
+        for j in range(len(players)):
+            print(f"\n{Fore.YELLOW}Spieler {player_names[j]} Bingokarte:{Style.RESET_ALL}")
+            print_bingo_card(cards[j])
+
+        # Check for win condition
+        all_winners = []
+        for j in range(len(players)):
+            winners = check_win(cards[j])
+            if winners:
+                all_winners.append((player_names[j], winners))
+
+        # Print all winners in this round
+        for winner in all_winners:
+            if winner[1]:
+                if isinstance(winner[1], list):
+                    win_conditions = ', '.join(map(str, winner[1]))  # Convert to strings before joining
+                    print(f"{Fore.GREEN}Spieler {winner[0]} hat gewonnen!")
+                else:
+                    print(f"{Fore.GREEN}Spieler {winner[0]} hat gewonnen!")
+
+        # If any player has won, save logs and return
+        if all_winners:
+            save_logs_to_file()
+            print(f"{Fore.YELLOW}Log-Dateien wurden erfolgreich in 'Log-Datei.txt' gespeichert.{Style.RESET_ALL}")
+            colorama.deinit()  # Reset terminal colors
+            return
+
 
 def main():
     if not os.path.exists(LOG_DIR):
