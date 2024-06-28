@@ -79,7 +79,7 @@ def loading_animation(duration=5):
 def create_bingo_card(words, width, height):
     """Create a bingo card with given words, width, and height."""
     random.shuffle(words)
-    card = [words[i * width:(i + 1) * width] for i in range(height)]
+    card = [[words[row * width + col] for col in range(width)] for row in range(height)]
     if width == height and width in [5, 7]:
         middle_index = width // 2
         card[height // 2][middle_index] = "X"  # Ensure middle cell is marked
@@ -89,12 +89,15 @@ def create_bingo_card(words, width, height):
 def print_bingo_card(card):
     """Print the bingo card in a table format with 'X' for marked words."""
     max_word_length = max(len(word) for row in card for word in row)
-    for row in card:
+    for i, row in enumerate(card):
         line = "+".join(["-" * (max_word_length + 2)] * len(row))
         print(f"+{line}+")
-        for word in row:
+        for j, word in enumerate(row):
             display_word = "X" if word == "X" else word
-            print(f"| {display_word.center(max_word_length)} ", end="")
+              if j == 0:  # Print player name in the first column
+                print(f"| {row[0].center(max_word_length)}{Style.RESET_ALL} ", end="")
+            else:
+                print(f"| {display_word.center(max_word_length)} ", end="")
         print("|")
     line = "+".join(["-" * (max_word_length + 2)] * len(card[0]))
     print(f"+{line}+")
