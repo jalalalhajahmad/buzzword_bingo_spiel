@@ -10,6 +10,7 @@ import colorama
 from colorama import Fore, Style
 
 # Argument parsing
+# Dieses Skript erstellt einen Argumentparser für ein Buzzword-Bingo-Spiel und erfordert die Angabe der Rasterdimensionen sowie den Pfad zu einer Wortliste.
 parser = argparse.ArgumentParser(description='Buzzword Bingo Spiel.')
 parser.add_argument('-xaxis', type=int, required=True, help='Anzahl der Felder in der Breite')
 parser.add_argument('-yaxis', type=int, required=True, help='Anzahl der Felder in der Höhe')
@@ -20,7 +21,8 @@ LOG_DIR = "logs"
 
 
 def read_words_from_file(filepath):
-    """Read words from a file and return them as a list."""
+   # Diese Funktion liest Wörter aus einer Datei und gibt sie als Liste zurück. 
+# Bei Fehlern wie einer fehlenden Datei oder anderen Ausnahmen wird eine Fehlermeldung ausgegeben und das Programm beendet.
     try:
         with open(filepath, 'r', encoding='utf-8') as file:
             words = [line.strip() for line in file if line.strip()]
@@ -267,20 +269,21 @@ def play_game(parent_conns, processes, cards, players, width, height):
             except ValueError:
                 print(f"\n{Fore.RED}Ungültige Eingabe.{Style.RESET_ALL}")
 
-         # After all players have made their move, print updated cards
+         # Nachdem alle Spieler ihren Zug gemacht haben, werden die aktualisierten Bingokarten ausgedruckt. 
+         # Für jeden Spieler wird der Name und die entsprechende Bingokarte angezeigt.
         print(f"{Fore.YELLOW}\nAktualisierte Bingo-Karten:{Style.RESET_ALL}")
         for j in range(len(players)):
             print(f"\n{Fore.YELLOW}Spieler {player_names[j]} Bingokarte:{Style.RESET_ALL}")
             print_bingo_card(cards[j])
 
-        # Check for win condition
+        # Überprüfung der Gewinnbedingung für alle Spieler und Speichern der Gewinner in einer Liste.
         all_winners = []
         for j in range(len(players)):
             winners = check_win(cards[j])
             if winners:
                 all_winners.append((player_names[j], winners))
 
-        # Print all winners in this round
+        # Alle Gewinner dieser Runde werden ausgegeben, wobei die Gewinnbedingungen bei Bedarf als Liste formatiert werden.
         for winner in all_winners:
             if winner[1]:
                 if isinstance(winner[1], list):
@@ -289,7 +292,7 @@ def play_game(parent_conns, processes, cards, players, width, height):
                 else:
                     print(f"{Fore.GREEN}Spieler {winner[0]} hat gewonnen!")
 
-        # If any player has won, save logs and return
+       # Wenn ein Spieler gewonnen hat, werden die Protokolle gespeichert, eine Bestätigungsmeldung gedruckt und die Terminalfarben zurückgesetzt.
         if all_winners:
             save_logs_to_file()
             print(f"{Fore.YELLOW}Log-Dateien wurden erfolgreich in 'Log-Datei.txt' gespeichert.{Style.RESET_ALL}")
