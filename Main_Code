@@ -105,38 +105,38 @@ def print_bingo_card(card):
 
 
 def check_win(card):
-    """Check if there is a win condition in the bingo card."""
+    """Prüft, ob es eine Gewinnbedingung auf der Bingo-Karte gibt."""
     winners = []
 
-    # Check rows
+    # Reihen überprüfen
     for i, row in enumerate(card):
         if all(cell == "X" for cell in row):
-            winners.append(i + 1)  # Player number is index + 1
+            winners.append(i + 1)  # Spielernummer ist Index + 1
 
-    # Check columns
+    # Spalten überprüfen
     for col in range(len(card[0])):
         if all(row[col] == "X" for row in card):
-            winners.append(col + 1)  # Player number is index + 1
+            winners.append(col + 1)  # Spielernummer ist Index + 1
 
-    # Check diagonals
+    # Diagonalen überprüfen
     if all(card[i][i] == "X" for i in range(len(card))):
-        winners.append("diagonal1")  # Diagonal 1 win
+        winners.append("diagonal1")  # Diagonal 1 gewinnt
     if all(card[i][len(card) - 1 - i] == "X" for i in range(len(card))):
-        winners.append("diagonal2")  # Diagonal 2 win
+        winners.append("diagonal2")  # Diagonal 2 gewinnt
 
     return winners
 
 
 
 def toggle_button(card, row, col):
-    """Toggle the state of a cell in the bingo card."""
+    """Schaltet den Zustand einer Zelle auf der Bingo-Karte um."""
     card[row][col] = "X" if card[row][col] == " " else "X"
 
 
 def player_process(pipe, player_num, width, height, words):
-    """Process for each player to handle their bingo card and actions."""
+    """Prozess für jeden Spieler zur Verwaltung ihrer Bingo-Karte und Aktionen."""
     try:
-        name, _ = pipe.recv()  # Receive player name, ignore age
+        name, _ = pipe.recv()  # Empfange Spielernamen, ignoriere Alter
         write_to_log(player_num, f"Spieler {player_num} - Start des Spiels")
 
         bingo_card = create_bingo_card(words, width, height)
