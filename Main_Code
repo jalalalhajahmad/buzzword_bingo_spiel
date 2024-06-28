@@ -17,7 +17,7 @@ parser.add_argument('-yaxis', type=int, required=True, help='Anzahl der Felder i
 parser.add_argument('-wordfile', type=str, required=True, help='Pfad zur Textdatei mit den Wörtern')
 args = parser.parse_args()
 
-LOG_DIR = "logs"
+LOG_DIR = "logs" #Verzeichnis, in dem die Log-Dateien gespeichert werden
 
 
 def read_words_from_file(filepath):
