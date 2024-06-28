@@ -191,7 +191,7 @@ def write_to_log(player_num, message):
     timestamp = datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
     filename = os.path.join(LOG_DIR, f"{timestamp}-bingo-Spieler{player_num}.txt")
     with open(filename, 'a') as log_file:
-        log_file.write(f"{timestamp}:message + "\n")
+        log_file.write(f"{timestamp}: {message}\n")
 
 #Speichert alle Spieler-Logs in einer einzelnen Datei
 def save_logs_to_file():
