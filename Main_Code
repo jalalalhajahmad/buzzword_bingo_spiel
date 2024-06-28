@@ -90,17 +90,15 @@ def create_bingo_card(words, width, height):
 def print_bingo_card(card):
     #Gibt die Bingo-Karte im Tabellenformat aus, wobei 'X' für markierte Wörter verwendet wird.
     max_word_length = max(len(word) for row in card for word in row)
-    for i, row in enumerate(card):
-        line = "+".join(["-" * (max_word_length + 2)] * len(row))
-        print(f"+{line}+")
-        for j, word in enumerate(row):
+     line = "+".join(["-" * (max_word_length + 2)] * len(card[0]))
+    print(f"+{line}+")
+         for i, row in enumerate(card):
+  print(f"| {row[0].center(max_word_length)} ", end="")
+        for j, , word in enumerate(row[1:], start=1):
             display_word = "X" if word == "X" else word
-              if j == 0:  # Print player name in the first column
-                print(f"| {row[0].center(max_word_length)}{Style.RESET_ALL} ", end="")
-            else:
-                print(f"| {display_word.center(max_word_length)} ", end="")
+            print(f"| {display_word.center(max_word_length)} ", end="")
         print("|")
-    line = "+".join(["-" * (max_word_length + 2)] * len(card[0]))
+
     print(f"+{line}+")
 
 
