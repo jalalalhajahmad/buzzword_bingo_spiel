@@ -184,17 +184,15 @@ def player_process(pipe, player_num, width, height, words):
     finally:
         write_to_log(player_num, f"Spieler {player_num} - Spiel beendet")
 
-
+#Schreibt eine Nachricht in die Log-Datei für einen bestimmten Spieler
 def write_to_log(player_num, message):
-    """Write a message to the log file for a specific player."""
     timestamp = datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
     filename = os.path.join(LOG_DIR, f"{timestamp}-bingo-Spieler{player_num}.txt")
     with open(filename, 'a') as log_file:
         log_file.write(f"{timestamp}:message + "\n")
 
-
+#Speichert alle Spieler-Logs in einer einzelnen Datei
 def save_logs_to_file():
-    """Save all player logs to a single file."""
     log_files = [f for f in os.listdir(LOG_DIR) if f.endswith('.txt') and f.startswith('bingo-Spieler')]
 
     if not log_files:
