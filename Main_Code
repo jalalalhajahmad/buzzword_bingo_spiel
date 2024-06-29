@@ -17,12 +17,12 @@ parser.add_argument('-yaxis', type=int, required=True, help='Anzahl der Felder i
 parser.add_argument('-wordfile', type=str, required=True, help='Pfad zur Textdatei mit den Wörtern')
 args = parser.parse_args()
 
-LOG_DIR = "logs" #Verzeichnis, in dem die Log-Dateien gespeichert werden
+LOG_DIR = "logs"
 
 
 def read_words_from_file(filepath):
-   # Diese Funktion liest Wörter aus einer Datei und gibt sie als Liste zurück. 
-# Bei Fehlern wie einer fehlenden Datei oder anderen Ausnahmen wird eine Fehlermeldung ausgegeben und das Programm beendet.
+    # Diese Funktion liest Wörter aus einer Datei und gibt sie als Liste zurück.
+    # Bei Fehlern wie einer fehlenden Datei oder anderen Ausnahmen wird eine Fehlermeldung ausgegeben und das Programm beendet.
     try:
         with open(filepath, 'r', encoding='utf-8') as file:
             words = [line.strip() for line in file if line.strip()]
@@ -36,7 +36,7 @@ def read_words_from_file(filepath):
 
 
 def welcome_screen():
-   #Zeigt einen stilvollen Begrüßungsbildschirm mit ASCII-Kunst in gelber Farbe an und wartet 2 Sekunden, bevor das Programm fortgesetzt wird.
+    # Zeigt einen stilvollen Begrüßungsbildschirm mit ASCII-Kunst in gelber Farbe an und wartet 2 Sekunden, bevor das Programm fortgesetzt wird.
     print(Fore.YELLOW + r"""
 ██████╗ ██╗   ██╗███████╗███████╗██╗    ██╗ ██████╗ ██████╗ ██████╗     ██████╗ ██╗███╗   ██╗ ██████╗  ██████╗ 
 ██╔══██╗██║   ██║╚══███╔╝╚══███╔╝██║    ██║██╔═══██╗██╔══██╗██╔══██╗    ██╔══██╗██║████╗  ██║██╔════╝ ██╔═══██╗
@@ -44,8 +44,8 @@ def welcome_screen():
 ██╔══██╗██║   ██║ ███╔╝   ███╔╝  ██║███╗██║██║   ██║██╔══██╗██║  ██║    ██╔══██╗██║██║╚██╗██║██║   ██║██║   ██║
 ██████╔╝╚██████╔╝███████╗███████╗╚███╔███╔╝╚██████╔╝██║  ██║██████╔╝    ██████╔╝██║██║ ╚████║╚██████╔╝╚██████╔╝
 ╚═════╝  ╚═════╝ ╚══════╝╚══════╝ ╚══╝╚══╝  ╚═════╝ ╚═╝  ╚═╝╚═════╝     ╚═════╝ ╚═╝╚═╝  ╚═══╝ ╚═════╝  ╚═════╝ 
-                                                                                                               
-                                                                                                                                                
+
+
 
 
 """ + Style.RESET_ALL)
@@ -57,16 +57,16 @@ def welcome_screen():
 ██║███╗██║██║██║     ██║     ██╔═██╗ ██║   ██║██║╚██╔╝██║██║╚██╔╝██║██╔══╝  ██║╚██╗██║╚═╝                            
 ╚███╔███╔╝██║███████╗███████╗██║  ██╗╚██████╔╝██║ ╚═╝ ██║██║ ╚═╝ ██║███████╗██║ ╚████║██╗                            
  ╚══╝╚══╝ ╚═╝╚══════╝╚══════╝╚═╝  ╚═╝ ╚═════╝ ╚═╝     ╚═╝╚═╝     ╚═╝╚══════╝╚═╝  ╚═══╝╚═╝                            
-                                                                                                                     
+
 ██████╗  █████╗ ███████╗    ███████╗██████╗ ██╗███████╗██╗         ██╗      █████╗ ███████╗██████╗ ████████╗         
 ██╔══██╗██╔══██╗██╔════╝    ██╔════╝██╔══██╗██║██╔════╝██║         ██║     ██╔══██╗██╔════╝██╔══██╗╚══██╔══╝         
 ██║  ██║███████║███████╗    ███████╗██████╔╝██║█████╗  ██║         ██║     ███████║█████╗  ██║  ██║   ██║            
 ██║  ██║██╔══██║╚════██║    ╚════██║██╔═══╝ ██║██╔══╝  ██║         ██║     ██╔══██║██╔══╝  ██║  ██║   ██║            
 ██████╔╝██║  ██║███████║    ███████║██║     ██║███████╗███████╗    ███████╗██║  ██║███████╗██████╔╝   ██║   ██╗██╗██╗
 ╚═════╝ ╚═╝  ╚═╝╚══════╝    ╚══════╝╚═╝     ╚═╝╚══════╝╚══════╝    ╚══════╝╚═╝  ╚═╝╚══════╝╚═════╝    ╚═╝   ╚═╝╚═╝╚═╝
-                                                                                                                     
 
- """+ Style.RESET_ALL)
+
+ """ + Style.RESET_ALL)
     time.sleep(2)
 
 
@@ -77,8 +77,9 @@ def loading_animation(duration=5):
                        colour='green'):
         time.sleep(duration / 200)
 
+
 def create_bingo_card(words, width, height):
-#Erstellt eine Bingo-Karte mit den gegebenen Wörtern, der Breite und der Höhe und markiert das mittlere Feld mit "X" bei quadratischen Karten (5x5 oder 7x7).
+    #Erstellt eine Bingo-Karte mit den gegebenen Wörtern, der Breite und der Höhe und markiert das mittlere Feld mit "X" bei quadratischen Karten (5x5 oder 7x7).
     random.shuffle(words)
     card = [[words[row * width + col] for col in range(width)] for row in range(height)]
     if width == height and width in [5, 7]:
@@ -90,51 +91,53 @@ def create_bingo_card(words, width, height):
 def print_bingo_card(card):
     #Gibt die Bingo-Karte im Tabellenformat aus, wobei 'X' für markierte Wörter verwendet wird.
     max_word_length = max(len(word) for row in card for word in row)
-     line = "+".join(["-" * (max_word_length + 2)] * len(card[0]))
-    print(f"+{line}+")
-         for i, row in enumerate(card):
-  print(f"| {row[0].center(max_word_length)} ", end="")
-        for j, , word in enumerate(row[1:], start=1):
+    for i, row in enumerate(card):
+        line = "+".join(["-" * (max_word_length + 2)] * len(row))
+        print(f"+{line}+")
+        for j, word in enumerate(row):
             display_word = "X" if word == "X" else word
-            print(f"| {display_word.center(max_word_length)} ", end="")
+            if j == 0:  # Print player name in the first column
+                print(f"| {row[0].center(max_word_length)}{Style.RESET_ALL} ", end="")
+            else:
+                print(f"| {display_word.center(max_word_length)} ", end="")
         print("|")
-
+    line = "+".join(["-" * (max_word_length + 2)] * len(card[0]))
     print(f"+{line}+")
 
 
 def check_win(card):
-    """Prüft, ob es eine Gewinnbedingung auf der Bingo-Karte gibt."""
+    # Prüft, ob es eine Gewinnbedingung auf der Bingo-Karte gibt.
     winners = []
 
     # Reihen überprüfen
     for i, row in enumerate(card):
         if all(cell == "X" for cell in row):
-            winners.append(i + 1)  # Spielernummer ist Index + 1
+            winners.append(i + 1)  # Player number is index + 1
 
     # Spalten überprüfen
     for col in range(len(card[0])):
         if all(row[col] == "X" for row in card):
-            winners.append(col + 1)  # Spielernummer ist Index + 1
+            winners.append(col + 1)  # Player number is index + 1
 
     # Diagonalen überprüfen
     if all(card[i][i] == "X" for i in range(len(card))):
-        winners.append("diagonal1")  # Diagonal 1 gewinnt
+        winners.append("diagonal1")  # Diagonal 1 win
     if all(card[i][len(card) - 1 - i] == "X" for i in range(len(card))):
-        winners.append("diagonal2")  # Diagonal 2 gewinnt
+        winners.append("diagonal2")  # Diagonal 2 win
 
     return winners
 
 
 
 def toggle_button(card, row, col):
-    """Schaltet den Zustand einer Zelle auf der Bingo-Karte um."""
+    # Schaltet den Zustand einer Zelle auf der Bingo-Karte um.
     card[row][col] = "X" if card[row][col] == " " else "X"
 
 
 def player_process(pipe, player_num, width, height, words):
-    """Prozess für jeden Spieler zur Verwaltung ihrer Bingo-Karte und Aktionen."""
+    # Prozess für jeden Spieler zur Verwaltung ihrer Bingo-Karte und Aktionen.
     try:
-        name, _ = pipe.recv()  # Empfange Spielernamen, ignoriere Alter
+        name, _ = pipe.recv()  # Receive player name, ignore age
         write_to_log(player_num, f"Spieler {player_num} - Start des Spiels")
 
         bingo_card = create_bingo_card(words, width, height)
@@ -184,15 +187,16 @@ def player_process(pipe, player_num, width, height, words):
     finally:
         write_to_log(player_num, f"Spieler {player_num} - Spiel beendet")
 
-#Schreibt eine Nachricht in die Log-Datei für einen bestimmten Spieler
+
 def write_to_log(player_num, message):
+    #Schreibt eine Nachricht in die Log-Datei für einen bestimmten Spieler
     timestamp = datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
     filename = os.path.join(LOG_DIR, f"{timestamp}-bingo-Spieler{player_num}.txt")
     with open(filename, 'a') as log_file:
         log_file.write(f"{timestamp}: {message}\n")
 
-#Speichert alle Spieler-Logs in einer einzelnen Datei
 def save_logs_to_file():
+    #Speichert alle Spieler-Logs in einer einzelnen Datei
     log_files = [f for f in os.listdir(LOG_DIR) if f.endswith('.txt') and f.startswith('bingo-Spieler')]
 
     if not log_files:
@@ -209,6 +213,7 @@ def save_logs_to_file():
             with open(os.path.join(LOG_DIR, log_file), 'r') as input_file:
                 output_file.write(input_file.read())
             output_file.write("\n\n")
+
 
 def play_game(parent_conns, processes, cards, players, width, height):
     player_names = [player[0] for player in players]
@@ -267,8 +272,8 @@ def play_game(parent_conns, processes, cards, players, width, height):
             except ValueError:
                 print(f"\n{Fore.RED}Ungültige Eingabe.{Style.RESET_ALL}")
 
-         # Nachdem alle Spieler ihren Zug gemacht haben, werden die aktualisierten Bingokarten ausgedruckt. 
-         # Für jeden Spieler wird der Name und die entsprechende Bingokarte angezeigt.
+        # Nachdem alle Spieler ihren Zug gemacht haben, werden die aktualisierten Bingokarten ausgedruckt.
+        # Für jeden Spieler wird der Name und die entsprechende Bingokarte angezeigt.
         print(f"{Fore.YELLOW}\nAktualisierte Bingo-Karten:{Style.RESET_ALL}")
         for j in range(len(players)):
             print(f"\n{Fore.YELLOW}Spieler {player_names[j]} Bingokarte:{Style.RESET_ALL}")
@@ -290,12 +295,14 @@ def play_game(parent_conns, processes, cards, players, width, height):
                 else:
                     print(f"{Fore.GREEN}Spieler {winner[0]} hat gewonnen!")
 
-       # Wenn ein Spieler gewonnen hat, werden die Protokolle gespeichert, eine Bestätigungsmeldung gedruckt und die Terminalfarben zurückgesetzt.
+        # Wenn ein Spieler gewonnen hat, werden die Protokolle gespeichert, eine Bestätigungsmeldung gedruckt und die Terminalfarben zurückgesetzt.
         if all_winners:
             save_logs_to_file()
             print(f"{Fore.YELLOW}Log-Dateien wurden erfolgreich in 'Log-Datei.txt' gespeichert.{Style.RESET_ALL}")
             colorama.deinit()  # Reset terminal colors
             return
+
+
 
 def main():
     if not os.path.exists(LOG_DIR):
