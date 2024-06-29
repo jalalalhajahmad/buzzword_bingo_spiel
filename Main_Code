@@ -9,8 +9,8 @@ import os
 import colorama
 from colorama import Fore, Style
 
-# Argument parsing
 # Dieses Skript erstellt einen Argumentparser für ein Buzzword-Bingo-Spiel und erfordert die Angabe der Rasterdimensionen sowie den Pfad zu einer Wortliste.
+
 parser = argparse.ArgumentParser(description='Buzzword Bingo Spiel.')
 parser.add_argument('-xaxis', type=int, required=True, help='Anzahl der Felder in der Breite')
 parser.add_argument('-yaxis', type=int, required=True, help='Anzahl der Felder in der Höhe')
@@ -20,9 +20,10 @@ args = parser.parse_args()
 LOG_DIR = "logs"
 
 
+# Diese Funktion liest Wörter aus einer Datei und gibt sie als Liste zurück.
+# Bei Fehlern wie einer fehlenden Datei oder anderen Ausnahmen wird eine Fehlermeldung ausgegeben und das Programm beendet.
 def read_words_from_file(filepath):
-    # Diese Funktion liest Wörter aus einer Datei und gibt sie als Liste zurück.
-    # Bei Fehlern wie einer fehlenden Datei oder anderen Ausnahmen wird eine Fehlermeldung ausgegeben und das Programm beendet.
+
     try:
         with open(filepath, 'r', encoding='utf-8') as file:
             words = [line.strip() for line in file if line.strip()]
@@ -35,8 +36,9 @@ def read_words_from_file(filepath):
         sys.exit(1)
 
 
+# Zeigt einen stilvollen Begrüßungsbildschirm mit ASCII-Kunst in gelber Farbe an und wartet 2 Sekunden, bevor das Programm fortgesetzt wird.
 def welcome_screen():
-    # Zeigt einen stilvollen Begrüßungsbildschirm mit ASCII-Kunst in gelber Farbe an und wartet 2 Sekunden, bevor das Programm fortgesetzt wird.
+
     print(Fore.YELLOW + r"""
 ██████╗ ██╗   ██╗███████╗███████╗██╗    ██╗ ██████╗ ██████╗ ██████╗     ██████╗ ██╗███╗   ██╗ ██████╗  ██████╗ 
 ██╔══██╗██║   ██║╚══███╔╝╚══███╔╝██║    ██║██╔═══██╗██╔══██╗██╔══██╗    ██╔══██╗██║████╗  ██║██╔════╝ ██╔═══██╗
@@ -69,34 +71,35 @@ def welcome_screen():
  """ + Style.RESET_ALL)
     time.sleep(2)
 
-
+#Zeigt eine Ladeanimation mit einem Fortschrittsbalken an, der schrittweise über die angegebene Dauer von 0% auf 100% ansteigt.
 def loading_animation(duration=5):
-    #Zeigt eine Ladeanimation mit einem Fortschrittsbalken an, der schrittweise über die angegebene Dauer von 0% auf 100% ansteigt.
+
     for _ in tqdm.tqdm(range(101), ncols=100, unit="🔳", ascii=False,
                        bar_format="{desc}: {bar} {percentage:3.0f}%",
                        colour='green'):
         time.sleep(duration / 200)
 
-
+#Erstellt eine Bingo-Karte mit den gegebenen Wörtern, der Breite und der Höhe und markiert das mittlere Feld mit "X" bei quadratischen Karten (5x5 oder 7x7).
 def create_bingo_card(words, width, height):
-    #Erstellt eine Bingo-Karte mit den gegebenen Wörtern, der Breite und der Höhe und markiert das mittlere Feld mit "X" bei quadratischen Karten (5x5 oder 7x7).
+
     random.shuffle(words)
     card = [[words[row * width + col] for col in range(width)] for row in range(height)]
     if width == height and width in [5, 7]:
         middle_index = width // 2
-        card[height // 2][middle_index] = "X"  # Ensure middle cell is marked
+        card[height // 2][middle_index] = "X"   # Das mittlere Feld ist immer makiert bei 5x5 und 7x7
     return card
 
 
+#Gibt die Bingo-Karte im Tabellenformat aus, wobei 'X' für markierte Wörter verwendet wird.
 def print_bingo_card(card):
-    #Gibt die Bingo-Karte im Tabellenformat aus, wobei 'X' für markierte Wörter verwendet wird.
+
     max_word_length = max(len(word) for row in card for word in row)
     for i, row in enumerate(card):
         line = "+".join(["-" * (max_word_length + 2)] * len(row))
         print(f"+{line}+")
         for j, word in enumerate(row):
             display_word = "X" if word == "X" else word
-            if j == 0:  # Print player name in the first column
+            if j == 0:
                 print(f"| {row[0].center(max_word_length)}{Style.RESET_ALL} ", end="")
             else:
                 print(f"| {display_word.center(max_word_length)} ", end="")
@@ -105,39 +108,43 @@ def print_bingo_card(card):
     print(f"+{line}+")
 
 
+# Prüft, ob es eine Gewinnbedingung auf der Bingo-Karte gibt.
 def check_win(card):
-    # Prüft, ob es eine Gewinnbedingung auf der Bingo-Karte gibt.
+
     winners = []
 
     # Reihen überprüfen
+
     for i, row in enumerate(card):
         if all(cell == "X" for cell in row):
-            winners.append(i + 1)  # Player number is index + 1
+            winners.append(i + 1)
 
     # Spalten überprüfen
+
     for col in range(len(card[0])):
         if all(row[col] == "X" for row in card):
-            winners.append(col + 1)  # Player number is index + 1
+            winners.append(col + 1)
 
     # Diagonalen überprüfen
+
     if all(card[i][i] == "X" for i in range(len(card))):
-        winners.append("diagonal1")  # Diagonal 1 win
+        winners.append("diagonal1")
     if all(card[i][len(card) - 1 - i] == "X" for i in range(len(card))):
-        winners.append("diagonal2")  # Diagonal 2 win
+        winners.append("diagonal2")
 
     return winners
 
 
-
+# Schaltet den Zustand einer Zelle auf der Bingo-Karte um.
 def toggle_button(card, row, col):
-    # Schaltet den Zustand einer Zelle auf der Bingo-Karte um.
+
     card[row][col] = "X" if card[row][col] == " " else "X"
 
-
+# Prozess für jeden Spieler zur Verwaltung ihrer Bingo-Karte und Aktionen.
 def player_process(pipe, player_num, width, height, words):
-    # Prozess für jeden Spieler zur Verwaltung ihrer Bingo-Karte und Aktionen.
+
     try:
-        name, _ = pipe.recv()  # Receive player name, ignore age
+        name, _ = pipe.recv()
         write_to_log(player_num, f"Spieler {player_num} - Start des Spiels")
 
         bingo_card = create_bingo_card(words, width, height)
@@ -188,15 +195,18 @@ def player_process(pipe, player_num, width, height, words):
         write_to_log(player_num, f"Spieler {player_num} - Spiel beendet")
 
 
+#Schreibt eine Nachricht in die Log-Datei für einen bestimmten Spieler
 def write_to_log(player_num, message):
-    #Schreibt eine Nachricht in die Log-Datei für einen bestimmten Spieler
+
     timestamp = datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
     filename = os.path.join(LOG_DIR, f"{timestamp}-bingo-Spieler{player_num}.txt")
     with open(filename, 'a') as log_file:
         log_file.write(f"{timestamp}: {message}\n")
 
+
+#Speichert alle Spieler-Logs in einer einzelnen Datei
 def save_logs_to_file():
-    #Speichert alle Spieler-Logs in einer einzelnen Datei
+
     log_files = [f for f in os.listdir(LOG_DIR) if f.endswith('.txt') and f.startswith('bingo-Spieler')]
 
     if not log_files:
@@ -214,12 +224,13 @@ def save_logs_to_file():
                 output_file.write(input_file.read())
             output_file.write("\n\n")
 
-
+# Die Funktion 'play_game' verwaltet das Hauptspielgeschehen des Buzzword-Bingo-Spiels.
+# Sie sammelt die Eingaben der Spieler, aktualisiert die Bingo-Karten und prüft auf Gewinnbedingungen.
 def play_game(parent_conns, processes, cards, players, width, height):
     player_names = [player[0] for player in players]
 
     while True:
-        # Collect player choices
+
         player_choices = []
         for i in range(len(players)):
             current_player_name = player_names[i]
@@ -232,12 +243,12 @@ def play_game(parent_conns, processes, cards, players, width, height):
                     choice = input(f"\nGeben Sie Koordinaten (z.B. '1 1') ein oder 's' zum Überspringen oder 'r' zum Verbessern oder 'q' zum Beenden: {Style.RESET_ALL}")
 
                     if choice.lower() == 'q':
-                        for conn in parent_conns:
+                        for conn in parent_conns:   # Spiel beenden
                             conn.send('quit')
                         return
-                    elif choice.lower() == 's':
+                    elif choice.lower() == 's':     # Zug überspringen
                         break
-                    elif choice.lower() == 'r':
+                    elif choice.lower() == 'r':     # Verbesserung vornehmen
                         undo_choice = input("\nGeben Sie die Koordinaten ein, die rückgängig gemacht oder markiert werden sollen (z.B. '1 1'): ")
                         try:
                             col, row = map(int, undo_choice.split())
@@ -251,17 +262,18 @@ def play_game(parent_conns, processes, cards, players, width, height):
                             print(f"\n{Fore.RED}Ungültige Eingabe.{Style.RESET_ALL}")
                     else:
                         try:
-                            col, row = map(int, choice.split())  # Koordinaten eingeben
+                            col, row = map(int, choice.split())   # Koordinaten eingeben
                             if 1 <= row <= height and 1 <= col <= width:
-                                # Convert to 0-based index for internal use
+
                                 row -= 1
                                 col -= 1
 
-                                parent_conns[current_player_index].send(f"toggle {col} {row}")  # Markierung umschalten
+                                parent_conns[current_player_index].send(f"toggle {col} {row}")   # Markierung umschalten
 
                                 # Warten auf Antwort (aktualisierte Bingo-Karte nicht sofort drucken)
+
                                 updated_card = parent_conns[current_player_index].recv()
-                                cards[current_player_index] = updated_card  # Lokale Kartenliste aktualisieren
+                                cards[current_player_index] = updated_card   # Lokale Kartenliste aktualisieren
                                 player_choices.append(updated_card)
                                 break
                             else:
@@ -274,12 +286,14 @@ def play_game(parent_conns, processes, cards, players, width, height):
 
         # Nachdem alle Spieler ihren Zug gemacht haben, werden die aktualisierten Bingokarten ausgedruckt.
         # Für jeden Spieler wird der Name und die entsprechende Bingokarte angezeigt.
+
         print(f"{Fore.YELLOW}\nAktualisierte Bingo-Karten:{Style.RESET_ALL}")
         for j in range(len(players)):
             print(f"\n{Fore.YELLOW}Spieler {player_names[j]} Bingokarte:{Style.RESET_ALL}")
             print_bingo_card(cards[j])
 
         # Überprüfung der Gewinnbedingung für alle Spieler und Speichern der Gewinner in einer Liste.
+
         all_winners = []
         for j in range(len(players)):
             winners = check_win(cards[j])
@@ -287,24 +301,32 @@ def play_game(parent_conns, processes, cards, players, width, height):
                 all_winners.append((player_names[j], winners))
 
         # Alle Gewinner dieser Runde werden ausgegeben, wobei die Gewinnbedingungen bei Bedarf als Liste formatiert werden.
+
         for winner in all_winners:
             if winner[1]:
                 if isinstance(winner[1], list):
-                    win_conditions = ', '.join(map(str, winner[1]))  # Convert to strings before joining
+                    win_conditions = ', '.join(map(str, winner[1]))  
                     print(f"{Fore.GREEN}Spieler {winner[0]} hat gewonnen!")
                 else:
                     print(f"{Fore.GREEN}Spieler {winner[0]} hat gewonnen!")
 
         # Wenn ein Spieler gewonnen hat, werden die Protokolle gespeichert, eine Bestätigungsmeldung gedruckt und die Terminalfarben zurückgesetzt.
+
         if all_winners:
             save_logs_to_file()
             print(f"{Fore.YELLOW}Log-Dateien wurden erfolgreich in 'Log-Datei.txt' gespeichert.{Style.RESET_ALL}")
-            colorama.deinit()  # Reset terminal colors
+            colorama.deinit()  
             return
 
 
 
+# Das Hauptprogramm initialisiert das Buzzword-Bingo-Spiel, sammelt Spielerinformationen, generiert Bingo-Karten,
+# startet Spielerprozesse und führt das Spiel aus, bis ein Gewinner ermittelt wird. Am Ende werden alle Prozesse
+# ordnungsgemäß beendet und Ressourcen freigegeben.
 def main():
+
+    # Überprüfen, ob das Verzeichnis für Logs existiert, und falls nicht, erstellen.
+
     if not os.path.exists(LOG_DIR):
         os.makedirs(LOG_DIR)
 
@@ -312,10 +334,14 @@ def main():
     loading_animation()
     print("\nDas Spiel ist fertig geladen! Um das Spiel zu starten:")
 
+    # Wörter aus der Datei lesen und sicherstellen, dass genügend Wörter für die Bingokarten vorhanden sind.
+
     words_from_file = read_words_from_file(args.wordfile)
     if len(words_from_file) < args.xaxis * args.yaxis:
         print(f"{Fore.RED}Fehler: Nicht genug Wörter in der Datei.{Style.RESET_ALL}")
         sys.exit(1)
+
+    # Anzahl der Spieler abfragen und sicherstellen, dass mindestens zwei Spieler teilnehmen.
 
     num_players = int(input("Geben Sie die Anzahl der Spieler ein? "))
 
@@ -327,16 +353,22 @@ def main():
     child_conns = []
     players = []
 
+    # Kommunikation zwischen Hauptprozess und Spielerprozessen einrichten.
+
     for i in range(num_players):
         parent_conn, child_conn = Pipe()
         parent_conns.append(parent_conn)
         child_conns.append(child_conn)
 
+        # Spielernamen abfragen und speichern.
+
         player_name = input(f"Geben Sie den Namen des Spielers {i + 1} ein: ")
-        players.append((player_name, None))  # Don't ask for age
+        players.append((player_name, None))
 
     processes = []
     cards = []
+
+    # Spielerprozesse starten und Bingokarten empfangen.
 
     for i in range(num_players):
         p = Process(target=player_process, args=(child_conns[i], i + 1, args.xaxis, args.yaxis, words_from_file))
@@ -347,18 +379,25 @@ def main():
         card = parent_conns[i].recv()
         cards.append(card)
 
-        # Print player's name and bingo card
+        # Spielername und Bingokarte ausgeben
+
         print(f"\n{Fore.YELLOW}Spieler {i + 1} ({players[i][0]}) Bingokarte:{Style.RESET_ALL}")
         print_bingo_card(card)
 
-    play_game(parent_conns, processes, cards, players, args.xaxis, args.yaxis)  # Pass players as well
+    # Hauptspielfunktion aufrufen
+
+    play_game(parent_conns, processes, cards, players, args.xaxis, args.yaxis)
+
+    # Auf Beendigung aller Spielerprozesse warten.
 
     for p in processes:
         p.join()
 
+    # Logs speichern.
+
     save_logs_to_file()
     print(f"{Fore.YELLOW}Log-Dateien wurden erfolgreich in 'Log-Datei.txt' gespeichert.{Style.RESET_ALL}")
-    colorama.deinit()  # Reset terminal colors
+    colorama.deinit()
 
 
 if __name__ == "__main__":
