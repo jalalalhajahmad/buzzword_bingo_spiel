@@ -17,7 +17,7 @@ parser.add_argument('-yaxis', type=int, required=True, help='Anzahl der Felder i
 parser.add_argument('-wordfile', type=str, required=True, help='Pfad zur Textdatei mit den Wörtern')
 args = parser.parse_args()
 
-LOG_DIR = "logs"
+LOG_DIR = "Logs"
 
 
 # Diese Funktion liest Wörter aus einer Datei und gibt sie als Liste zurück.
@@ -208,10 +208,6 @@ def write_to_log(player_num, message):
 def save_logs_to_file():
 
     log_files = [f for f in os.listdir(LOG_DIR) if f.endswith('.txt') and f.startswith('bingo-Spieler')]
-
-    if not log_files:
-        print("Keine Log-Dateien gefunden.")
-        return
 
     with open(os.path.join(LOG_DIR, 'Log-Datei.txt'), 'w') as output_file:
         output_file.write("Zusammengeführte Log-Datei\n")
